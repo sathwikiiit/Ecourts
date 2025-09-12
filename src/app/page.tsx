@@ -6,7 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { getUpcomingHearings } from '@/app/actions';
+import { getUpcomingHearings } from '@/lib/actions/hearings';
 import CaseSearch from '@/components/dashboard/case-search';
 import UpcomingHearings from '@/components/dashboard/upcoming-hearings';
 import { Logo } from '@/components/logo';

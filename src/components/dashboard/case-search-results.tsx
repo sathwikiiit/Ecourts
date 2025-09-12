@@ -5,7 +5,7 @@ import { Clock, Loader2, MapPin, CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getCaseHearings } from '@/app/actions';
+import { getCaseHearings } from '@/lib/actions/hearings';
 import type { Case, Hearing } from '@/lib/types';
 import { Card, CardContent } from '../ui/card';
 import { format } from 'date-fns';
