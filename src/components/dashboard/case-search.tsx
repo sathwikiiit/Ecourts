@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Briefcase, Clock, Loader2, MapPin, Search, CalendarPlus } from 'lucide-react';
+import { Briefcase, Clock, Loader2, MapPin, Search, CalendarPlus, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -11,6 +11,7 @@ import type { Case, Hearing } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { format } from 'date-fns';
 import SyncDialog from './sync-dialog';
+import Link from 'next/link';
 
 export default function CaseSearch() {
   const [keyword, setKeyword] = useState('');
@@ -42,6 +43,12 @@ export default function CaseSearch() {
 
   return (
     <div className="p-2 space-y-4">
+        <Link href="/cases/new" passHref>
+            <Button className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Case
+            </Button>
+        </Link>
       <form onSubmit={handleSearch} className="flex w-full items-center space-x-2">
         <Input
           type="text"
