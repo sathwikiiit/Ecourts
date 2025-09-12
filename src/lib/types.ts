@@ -1,5 +1,5 @@
 export interface Case {
-  id: number;
+  id: string; // CNR is string
   case_number: string;
   title: string;
   description: string;
@@ -7,8 +7,8 @@ export interface Case {
 }
 
 export interface Hearing {
-  id: number;
-  case_id: number;
+  id: string;
+  case_id: string; // CNR
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   location: string;

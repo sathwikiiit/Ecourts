@@ -16,9 +16,9 @@ import Link from 'next/link';
 export default function CaseSearch() {
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState<Case[]>([]);
-  const [hearings, setHearings] = useState<Record<number, Hearing[]>>({});
+  const [hearings, setHearings] = useState<Record<string, Hearing[]>>({});
   const [loading, setLoading] = useState(false);
-  const [hearingsLoading, setHearingsLoading] = useState<Record<number, boolean>>({});
+  const [hearingsLoading, setHearingsLoading] = useState<Record<string, boolean>>({});
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +32,12 @@ export default function CaseSearch() {
   };
 
   const handleAccordionChange = async (caseId: string) => {
-    const id = parseInt(caseId, 10);
-    if (!hearings[id]) {
-      setHearingsLoading((prev) => ({ ...prev, [id]: true }));
-      const caseHearings = await getCaseHearings(id);
-      setHearings((prev) => ({ ...prev, [id]: caseHearings }));
-      setHearingsLoading((prev) => ({ ...prev, [id]: false }));
+    if (!caseId) return;
+    if (!hearings[caseId]) {
+      setHearingsLoading((prev) => ({ ...prev, [caseId]: true }));
+      const caseHearings = await getCaseHearings(caseId);
+      setHearings((prev) => ({ ...prev, [caseId]: caseHearings }));
+      setHearingsLoading((prev) => ({ ...prev, [caseId]: false }));
     }
   };
 
@@ -52,7 +52,7 @@ export default function CaseSearch() {
       <form onSubmit={handleSearch} className="flex w-full items-center space-x-2">
         <Input
           type="text"
-          placeholder="Search by keyword..."
+          placeholder="Search by party name..."
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           className="bg-card"
@@ -105,8 +105,6 @@ export default function CaseSearch() {
 
 
 function HearingItem({ hearing }: { hearing: Hearing }) {
-    const [isSyncing, setIsSyncing] = useState(false);
-  
     return (
       <Card className="bg-card/50">
         <CardContent className="p-3">
