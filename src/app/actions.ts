@@ -7,16 +7,30 @@ import { format } from 'date-fns';
 import { courts } from './data';
 
 const API_BASE_URL = 'https://court-api.kleopatra.io/api/core/live/district-court';
+const API_KEY = process.env.COURT_API_KEY;
+
+const getAuthHeaders = () => {
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+    if (API_KEY) {
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+    }
+    return headers;
+}
 
 export async function searchCases(keyword: string): Promise<Case[]> {
   noStore();
   if (!keyword) return [];
+  if (!API_KEY) {
+    console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
+    // Returning dummy data to avoid breaking the UI completely
+    return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/search/party`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         name: keyword,
         stage: 'PENDING',
@@ -31,13 +45,12 @@ export async function searchCases(keyword: string): Promise<Case[]> {
 
     const searchResults = await response.json();
     
-    // Assuming the API returns a list of cases with a similar structure
     if (Array.isArray(searchResults)) {
         return searchResults.map((item: any, index: number) => ({
-            id: item.cnr || index,
+            id: item.cnr || index.toString(),
             case_number: item.case_number || 'N/A',
             title: item.party_name || 'N/A',
-            description: item.petitioner || '', // using petitioner as description
+            description: item.petitioner || '',
             status: 'Pending',
         }));
     }
@@ -50,9 +63,9 @@ export async function searchCases(keyword: string): Promise<Case[]> {
   }
 }
 
-export async function getCaseHearings(caseId: number | string): Promise<Hearing[]> {
+export async function getCaseHearings(caseId: string): Promise<Hearing[]> {
   noStore();
-  // The new API spec does not provide an endpoint to get hearings for a case.
+  // The API spec does not provide an endpoint to get hearings for a case.
   // We can get a "cause list" for a court, which is a list of hearings.
   // We will simulate this by filtering the cause list.
   // This is not ideal, but it's a workaround given the API.
@@ -78,11 +91,13 @@ export async function getCaseHearings(caseId: number | string): Promise<Hearing[
 }
 
 async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRIMINAL', date: Date): Promise<Hearing[]> {
+    if (!API_KEY) {
+        // Silently fail if no API key is present for this internal function
+        return [];
+    }
     const response = await fetch(`${API_BASE_URL}/cause-list`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           courtId: courtId,
           type: type,
@@ -116,6 +131,10 @@ async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRI
 
 export async function getUpcomingHearings(): Promise<Hearing[]> {
   noStore();
+  if (!API_KEY) {
+    console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
+    return [];
+  }
   try {
     const today = new Date();
     // For simplicity, we'll fetch from the first court in our static data.
