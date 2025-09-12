@@ -4,7 +4,7 @@ import type { Case, Hearing } from '@/lib/types';
 import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-const API_BASE_URL = 'https://court-api.kleopatra.io';
+const API_BASE_URL = 'https://court-api.kleopatra.io/api';
 
 export async function searchCases(keyword: string): Promise<Case[]> {
   noStore();
@@ -40,7 +40,8 @@ export async function getCaseHearings(caseId: number): Promise<Hearing[]> {
 export async function getUpcomingHearings(): Promise<Hearing[]> {
   noStore();
   try {
-    const response = await fetch(`${API_BASE_URL}/hearings/upcoming`);
+    // The API docs show `/hearings/` as the endpoint, not `/hearings/upcoming`
+    const response = await fetch(`${API_BASE_URL}/hearings/`);
     if (!response.ok) {
       console.error('Failed to fetch upcoming hearings:', response.statusText);
       return [];
