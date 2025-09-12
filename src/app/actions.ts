@@ -1,12 +1,12 @@
 'use server';
 
-import type { Case, Hearing } from '@/lib/types';
+import type { Case, Hearing, District, Complex } from '@/lib/types';
 import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
-import { courts, complexes } from './data';
+import { courts, complexes as staticComplexes, districts as staticDistricts } from './data';
 
-const API_BASE_URL = 'https://court-api.kleopatra.io/api/core/live/district-court';
+const API_BASE_URL = 'https://court-api.kleopatra.io/api/core';
 const API_KEY = process.env.COURT_API_KEY;
 
 const getAuthHeaders = () => {
@@ -17,6 +17,48 @@ const getAuthHeaders = () => {
         headers['Authorization'] = `Bearer ${API_KEY}`;
     }
     return headers;
+}
+
+export async function getDistricts(): Promise<District[]> {
+    noStore();
+    if (!API_KEY) return staticDistricts; // Fallback to static data
+    try {
+        const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ all: true }),
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch districts, falling back to static data', response.status, await response.text());
+            return staticDistricts;
+        }
+        const data = await response.json();
+        return data.districts || staticDistricts;
+    } catch (error) {
+        console.error('Error fetching districts:', error);
+        return staticDistricts;
+    }
+}
+
+export async function getComplexes(): Promise<Complex[]> {
+    noStore();
+    if (!API_KEY) return staticComplexes; // Fallback to static data
+    try {
+        const response = await fetch(`${API_BASE_URL}/static/district-court/complexes`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ all: true }),
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch complexes, falling back to static data', response.status, await response.text());
+            return staticComplexes;
+        }
+        const data = await response.json();
+        return data.complexes || staticComplexes;
+    } catch (error) {
+        console.error('Error fetching complexes:', error);
+        return staticComplexes;
+    }
 }
 
 type CaseSearchOptions = {
@@ -44,7 +86,7 @@ export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
     if (options.districtId) body.districtId = options.districtId;
     if (options.complexId) body.complexId = options.complexId;
 
-    const response = await fetch(`${API_BASE_URL}/search/party`, {
+    const response = await fetch(`${API_BASE_URL}/live/district-court/search/party`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(body),
@@ -98,7 +140,7 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
     if (options.districtId) body.districtId = options.districtId;
     if (options.complexId) body.complexId = options.complexId;
 
-      const response = await fetch(`${API_BASE_URL}/search/advocate`, {
+      const response = await fetch(`${API_BASE_URL}/live/district-court/search/advocate`, {
           method: 'POST',
           headers: getAuthHeaders(),
           body: JSON.stringify(body),
@@ -148,7 +190,7 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
     if (options.districtId) body.districtId = options.districtId;
     if (options.complexId) body.complexId = options.complexId;
     
-      const response = await fetch(`${API_BASE_URL}/search/filing`, {
+      const response = await fetch(`${API_BASE_URL}/live/district-court/search/filing`, {
           method: 'POST',
           headers: getAuthHeaders(),
           body: JSON.stringify(body),
@@ -211,7 +253,7 @@ async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRI
         // Silently fail if no API key is present for this internal function
         return [];
     }
-    const response = await fetch(`${API_BASE_URL}/cause-list`, {
+    const response = await fetch(`${API_BASE_URL}/live/district-court/cause-list`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -237,7 +279,7 @@ async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRI
           case_id: c.cnr,
           date: format(date, 'yyyy-MM-dd'),
           time: '09:00', // API doesn't provide time, using a default
-          location: courts.find(court => court.id === courtId)?.name || complexes.find(cx => cx.id === list.complexId)?.name || 'N/A',
+          location: courts.find(court => court.id === courtId)?.name || staticComplexes.find(cx => cx.id === list.complexId)?.name || 'N/A',
           type: list.purpose || 'Hearing',
           case_title: `${c.petitioner} vs ${c.respondent}`,
           case_number: c.caseNo,

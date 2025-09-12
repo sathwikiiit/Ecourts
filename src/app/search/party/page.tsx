@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { searchCases } from '@/app/actions';
-import type { Case } from '@/lib/types';
+import { searchCases, getDistricts, getComplexes } from '@/app/actions';
+import type { Case, District, Complex } from '@/lib/types';
 import CaseSearchResults from '@/components/dashboard/case-search-results';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
-import { districts, complexes } from '@/app/data';
 
 export default function SearchByPartyPage() {
   const [keyword, setKeyword] = useState('');
@@ -21,6 +20,21 @@ export default function SearchByPartyPage() {
   const [results, setResults] = useState<Case[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [complexes, setComplexes] = useState<Complex[]>([]);
+  const [loadingFilters, setLoadingFilters] = useState(true);
+
+  useEffect(() => {
+    async function loadFilters() {
+      setLoadingFilters(true);
+      const [districtsData, complexesData] = await Promise.all([getDistricts(), getComplexes()]);
+      setDistricts(districtsData);
+      setComplexes(complexesData);
+      setLoadingFilters(false);
+    }
+    loadFilters();
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,9 +70,9 @@ export default function SearchByPartyPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <Label htmlFor="district">District</Label>
-                            <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)}>
+                            <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)} disabled={loadingFilters}>
                                 <SelectTrigger id="district">
-                                    <SelectValue placeholder="All Districts" />
+                                    <SelectValue placeholder={loadingFilters ? "Loading..." : "All Districts"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Districts</SelectItem>
@@ -69,9 +83,9 @@ export default function SearchByPartyPage() {
                         </div>
                         <div>
                             <Label htmlFor="complex">Court Complex</Label>
-                            <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)}>
+                            <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)} disabled={loadingFilters}>
                                 <SelectTrigger id="complex">
-                                    <SelectValue placeholder="All Complexes" />
+                                    <SelectValue placeholder={loadingFilters ? "Loading..." : "All Complexes"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Complexes</SelectItem>
