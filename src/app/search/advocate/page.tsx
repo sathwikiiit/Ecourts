@@ -9,7 +9,7 @@ import type { Case } from '@/lib/types';
 import CaseSearchResults from '@/components/dashboard/case-search-results';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
 import { districts, complexes } from '@/app/data';
 
 export default function SearchByAdvocatePage() {
@@ -55,24 +55,26 @@ export default function SearchByAdvocatePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <Label htmlFor="district">District</Label>
-                            <Select value={districtId} onValueChange={setDistrictId}>
+                            <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)}>
                                 <SelectTrigger id="district">
                                     <SelectValue placeholder="All Districts" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Districts</SelectItem>
+                                    <SelectItem value="all">All Districts</SelectItem>
+                                    <SelectSeparator />
                                     {districts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
                         <div>
                             <Label htmlFor="complex">Court Complex</Label>
-                            <Select value={complexId} onValueChange={setComplexId}>
+                             <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)}>
                                 <SelectTrigger id="complex">
                                     <SelectValue placeholder="All Complexes" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Complexes</SelectItem>
+                                    <SelectItem value="all">All Complexes</SelectItem>
+                                    <SelectSeparator />
                                     {complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
