@@ -1,131 +1,52 @@
 'use client';
 
-import { useState } from 'react';
-import { Briefcase, Clock, Loader2, MapPin, Search, CalendarPlus, PlusCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getCaseHearings, searchCases } from '@/app/actions';
-import type { Case, Hearing } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { format } from 'date-fns';
-import SyncDialog from './sync-dialog';
+import { Gavel, PlusCircle, Search, Users } from 'lucide-react';
+import {
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+  } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function CaseSearch() {
-  const [keyword, setKeyword] = useState('');
-  const [results, setResults] = useState<Case[]>([]);
-  const [hearings, setHearings] = useState<Record<string, Hearing[]>>({});
-  const [loading, setLoading] = useState(false);
-  const [hearingsLoading, setHearingsLoading] = useState<Record<string, boolean>>({});
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyword) return;
-    setLoading(true);
-    setResults([]);
-    setHearings({});
-    const searchResults = await searchCases(keyword);
-    setResults(searchResults);
-    setLoading(false);
-  };
-
-  const handleAccordionChange = async (caseId: string) => {
-    if (!caseId) return;
-    if (!hearings[caseId]) {
-      setHearingsLoading((prev) => ({ ...prev, [caseId]: true }));
-      const caseHearings = await getCaseHearings(caseId);
-      setHearings((prev) => ({ ...prev, [caseId]: caseHearings }));
-      setHearingsLoading((prev) => ({ ...prev, [caseId]: false }));
-    }
-  };
-
+    const pathname = usePathname();
   return (
-    <div className="p-2 space-y-4">
-        <Link href="/cases/new" passHref>
-            <Button className="w-full">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Case
-            </Button>
-        </Link>
-      <form onSubmit={handleSearch} className="flex w-full items-center space-x-2">
-        <Input
-          type="text"
-          placeholder="Search by party name..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          className="bg-card"
-        />
-        <Button type="submit" size="icon" disabled={loading}>
-          {loading ? <Loader2 className="animate-spin" /> : <Search />}
-        </Button>
-      </form>
-
-      {loading && (
-        <div className="space-y-2">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      )}
-
-      {results.length > 0 && (
-        <Accordion type="single" collapsible className="w-full" onValueChange={handleAccordionChange}>
-          {results.map((caseItem) => (
-            <AccordionItem value={String(caseItem.id)} key={caseItem.id}>
-              <AccordionTrigger className="hover:no-underline">
-                <div className="text-left">
-                  <p className="font-semibold truncate">{caseItem.title}</p>
-                  <p className="text-sm text-muted-foreground">{caseItem.case_number}</p>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                {hearingsLoading[caseItem.id] && <p className="text-sm text-muted-foreground p-4">Loading hearings...</p>}
-                {hearings[caseItem.id] && hearings[caseItem.id].length > 0 ? (
-                  <div className="space-y-2">
-                    {hearings[caseItem.id].map((hearing) => (
-                      <HearingItem key={hearing.id} hearing={{...hearing, case_title: caseItem.title, case_number: caseItem.case_number }} />
-                    ))}
-                  </div>
-                ) : (
-                  !hearingsLoading[caseItem.id] && <p className="text-sm text-muted-foreground p-4">No hearings found for this case.</p>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
-
-      {!loading && results.length === 0 && keyword && (
-        <p className="text-center text-sm text-muted-foreground pt-4">No cases found.</p>
-      )}
+    <div className="p-2">
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <Link href="/cases/new" passHref>
+                    <SidebarMenuButton tooltip="Add a new case" isActive={pathname === '/cases/new'}>
+                        <PlusCircle />
+                        <span>Add New Case</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/search/party" passHref>
+                    <SidebarMenuButton tooltip="Search by Party" isActive={pathname === '/search/party'}>
+                        <Users />
+                        <span>Search by Party</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/search/advocate" passHref>
+                    <SidebarMenuButton tooltip="Search by Advocate" isActive={pathname === '/search/advocate'}>
+                        <Gavel />
+                        <span>Search by Advocate</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/search/filing" passHref>
+                    <SidebarMenuButton tooltip="Search by Filing No." isActive={pathname === '/search/filing'}>
+                        <Search />
+                        <span>Search by Filing No.</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+        </SidebarMenu>
     </div>
   );
 }
-
-
-function HearingItem({ hearing }: { hearing: Hearing }) {
-    return (
-      <Card className="bg-card/50">
-        <CardContent className="p-3">
-            <p className="font-semibold text-sm">{hearing.type}</p>
-            <div className="text-sm text-muted-foreground space-y-1 mt-1">
-                <div className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{format(new Date(`${hearing.date}T${hearing.time}`), 'PPpp')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{hearing.location}</span>
-                </div>
-            </div>
-            <SyncDialog hearing={hearing}>
-                <Button variant="ghost" size="sm" className="w-full justify-start mt-2 h-8 px-2">
-                    <CalendarPlus className="mr-2 h-4 w-4" />
-                    Sync to Calendar
-                </Button>
-            </SyncDialog>
-        </CardContent>
-      </Card>
-    );
-  }

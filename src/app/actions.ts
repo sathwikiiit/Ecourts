@@ -24,7 +24,6 @@ export async function searchCases(keyword: string): Promise<Case[]> {
   if (!keyword) return [];
   if (!API_KEY) {
     console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
-    // Returning dummy data to avoid breaking the UI completely
     return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
   try {
@@ -62,6 +61,87 @@ export async function searchCases(keyword: string): Promise<Case[]> {
     return [];
   }
 }
+
+export async function searchCasesByAdvocate(advocateName: string): Promise<Case[]> {
+  noStore();
+  if (!advocateName) return [];
+  if (!API_KEY) {
+      console.error("API Key is not configured.");
+      return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
+  }
+  try {
+      const response = await fetch(`${API_BASE_URL}/search/advocate`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+              name: advocateName,
+              stage: 'PENDING',
+          }),
+      });
+
+      if (!response.ok) {
+          console.error('Failed to fetch cases by advocate:', response.status, await response.text());
+          return [];
+      }
+
+      const searchResults = await response.json();
+      if (Array.isArray(searchResults)) {
+          return searchResults.map((item: any, index: number) => ({
+              id: item.cnr || index.toString(),
+              case_number: item.case_number || 'N/A',
+              title: item.party_name || 'N/A',
+              description: `Advocate: ${item.advocate_name || 'N/A'}`,
+              status: 'Pending',
+          }));
+      }
+      return [];
+  } catch (error) {
+      console.error('Error searching cases by advocate:', error);
+      return [];
+  }
+}
+
+export async function searchCasesByFilingNumber(filingNumber: string, filingYear: string): Promise<Case[]> {
+  noStore();
+  if (!filingNumber || !filingYear) return [];
+  if (!API_KEY) {
+      console.error("API Key is not configured.");
+      return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
+  }
+  try {
+      const response = await fetch(`${API_BASE_URL}/search/filing`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+              filingNumber,
+              filingYear,
+          }),
+      });
+
+      if (!response.ok) {
+          console.error('Failed to fetch cases by filing number:', response.status, await response.text());
+          return [];
+      }
+      
+      const searchResult = await response.json();
+      // The API seems to return a single object, not an array for filing search
+      if (searchResult && searchResult.cnr) {
+        return [{
+            id: searchResult.cnr,
+            case_number: searchResult.case_number || 'N/A',
+            title: `${searchResult.petitioner} vs ${searchResult.respondent}`,
+            description: `Filing Date: ${searchResult.date_of_filing || 'N/A'}`,
+            status: 'Pending',
+        }];
+      }
+
+      return [];
+  } catch (error) {
+      console.error('Error searching cases by filing number:', error);
+      return [];
+  }
+}
+
 
 export async function getCaseHearings(caseId: string): Promise<Hearing[]> {
   noStore();
