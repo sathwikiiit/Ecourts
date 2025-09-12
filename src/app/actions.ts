@@ -4,7 +4,7 @@ import type { Case, Hearing } from '@/lib/types';
 import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
-import { courts } from './data';
+import { courts, complexes } from './data';
 
 const API_BASE_URL = 'https://court-api.kleopatra.io/api/core/live/district-court';
 const API_KEY = process.env.COURT_API_KEY;
@@ -19,22 +19,35 @@ const getAuthHeaders = () => {
     return headers;
 }
 
-export async function searchCases(keyword: string): Promise<Case[]> {
+type CaseSearchOptions = {
+    name: string;
+    year?: string;
+    stage?: 'PENDING' | 'DISPOSED' | 'BOTH';
+    districtId?: string;
+    complexId?: string;
+};
+
+export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
   noStore();
-  if (!keyword) return [];
+  if (!options.name) return [];
   if (!API_KEY) {
     console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
     return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
   try {
+    const body: any = {
+        name: options.name,
+        stage: options.stage || 'PENDING',
+        year: options.year || new Date().getFullYear().toString(),
+    };
+
+    if (options.districtId) body.districtId = options.districtId;
+    if (options.complexId) body.complexId = options.complexId;
+
     const response = await fetch(`${API_BASE_URL}/search/party`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({
-        name: keyword,
-        stage: 'PENDING',
-        year: new Date().getFullYear().toString(),
-      }),
+      body: JSON.stringify(body),
     });
     
     if (!response.ok) {
@@ -62,21 +75,33 @@ export async function searchCases(keyword: string): Promise<Case[]> {
   }
 }
 
-export async function searchCasesByAdvocate(advocateName: string): Promise<Case[]> {
+type AdvocateSearchOptions = {
+    name: string;
+    stage?: 'PENDING' | 'DISPOSED' | 'BOTH';
+    districtId?: string;
+    complexId?: string;
+};
+
+export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<Case[]> {
   noStore();
-  if (!advocateName) return [];
+  if (!options.name) return [];
   if (!API_KEY) {
       console.error("API Key is not configured.");
       return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
   try {
+    const body: any = {
+        name: options.name,
+        stage: options.stage || 'PENDING',
+    };
+
+    if (options.districtId) body.districtId = options.districtId;
+    if (options.complexId) body.complexId = options.complexId;
+
       const response = await fetch(`${API_BASE_URL}/search/advocate`, {
           method: 'POST',
           headers: getAuthHeaders(),
-          body: JSON.stringify({
-              name: advocateName,
-              stage: 'PENDING',
-          }),
+          body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -101,21 +126,32 @@ export async function searchCasesByAdvocate(advocateName: string): Promise<Case[
   }
 }
 
-export async function searchCasesByFilingNumber(filingNumber: string, filingYear: string): Promise<Case[]> {
+type FilingSearchOptions = {
+    filingNumber: string;
+    filingYear: string;
+    districtId?: string;
+    complexId?: string;
+};
+
+export async function searchCasesByFilingNumber(options: FilingSearchOptions): Promise<Case[]> {
   noStore();
-  if (!filingNumber || !filingYear) return [];
+  if (!options.filingNumber || !options.filingYear) return [];
   if (!API_KEY) {
       console.error("API Key is not configured.");
       return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
   try {
+    const body: any = {
+        filingNumber: options.filingNumber,
+        filingYear: options.filingYear,
+    };
+    if (options.districtId) body.districtId = options.districtId;
+    if (options.complexId) body.complexId = options.complexId;
+    
       const response = await fetch(`${API_BASE_URL}/search/filing`, {
           method: 'POST',
           headers: getAuthHeaders(),
-          body: JSON.stringify({
-              filingNumber,
-              filingYear,
-          }),
+          body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -201,7 +237,7 @@ async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRI
           case_id: c.cnr,
           date: format(date, 'yyyy-MM-dd'),
           time: '09:00', // API doesn't provide time, using a default
-          location: courts.find(court => court.id === courtId)?.name || 'N/A',
+          location: courts.find(court => court.id === courtId)?.name || complexes.find(cx => cx.id === list.complexId)?.name || 'N/A',
           type: list.purpose || 'Hearing',
           case_title: `${c.petitioner} vs ${c.respondent}`,
           case_number: c.caseNo,
