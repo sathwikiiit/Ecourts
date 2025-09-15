@@ -98,9 +98,9 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
       if (Array.isArray(searchResults)) {
           return searchResults.map((item: any, index: number) => ({
               id: item.cnr || index.toString(),
-              case_number: item.case_number || 'N/A',
-              title: item.party_name || 'N/A',
-              description: `Advocate: ${item.advocate_name || 'N/A'}`,
+              case_number: item.case_no || 'N/A',
+              title: item.party || 'N/A',
+              description: `Advocate: ${item.advocate || 'N/A'}`,
               status: 'Pending',
           }));
       }
