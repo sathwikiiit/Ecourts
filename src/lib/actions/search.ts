@@ -51,6 +51,8 @@ export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
             description: item.petitioner || '',
             status: 'Pending',
         }));
+    } else {
+        console.warn('Search by party did not return an array:', searchResults);
     }
 
     return [];
@@ -100,15 +102,21 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
 
         // The response is an array of objects, where each object has a 'cases' array.
         if (Array.isArray(searchResults)) {
-            return searchResults.flatMap((complex: any) =>
-                (complex.cases || []).map((c:any) => ({
+            return searchResults.flatMap((complex: any) => {
+                if (!complex || !Array.isArray(complex.cases)) {
+                    console.warn('Unexpected complex object format in advocate search:', complex);
+                    return [];
+                }
+                return (complex.cases || []).map((c:any) => ({
                     id: c.cnr,
                     case_number: c.caseNumber,
                     title: c.title,
                     description: `Advocate: ${c.advocateName}`,
                     status: 'Pending'
                 }))
-            );
+            });
+        } else {
+            console.warn('Search by advocate did not return an array:', searchResults);
         }
         return [];
     } catch (error) {
@@ -162,6 +170,8 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
             description: `Filing Date: ${searchResult.date_of_filing || 'N/A'}`,
             status: 'Pending',
         }];
+      } else {
+        console.warn('Search by filing number returned unexpected format:', searchResult);
       }
 
       return [];
