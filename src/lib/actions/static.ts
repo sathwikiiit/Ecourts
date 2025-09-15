@@ -1,12 +1,10 @@
 'use server';
 
 import type { District, Complex, State } from '@/lib/types';
-import { unstable_noStore as noStore } from 'next/cache';
 import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
 import { districts as staticDistricts, complexes as staticComplexes, states as staticStates } from '@/app/data';
 
 export async function getStates(): Promise<State[]> {
-    noStore();
     if (!API_KEY) return staticStates;
     try {
         const response = await fetch(`${API_BASE_URL}/static/district-court/states`, {
@@ -27,7 +25,6 @@ export async function getStates(): Promise<State[]> {
 
 
 export async function getDistricts(stateId?: string): Promise<District[]> {
-    noStore();
     if (!API_KEY) return staticDistricts.filter(d => !stateId || d.stateId === stateId);
     try {
         const body: { all?: boolean, stateId?: string } = stateId ? { stateId } : { all: true };
@@ -49,7 +46,6 @@ export async function getDistricts(stateId?: string): Promise<District[]> {
 }
 
 export async function getComplexes(districtId?: string): Promise<Complex[]> {
-    noStore();
     if (!API_KEY) return staticComplexes.filter(c => !districtId || c.districtId === districtId);
     try {
         const body: { all?: boolean, districtId?: string } = districtId ? { districtId } : { all: true };
