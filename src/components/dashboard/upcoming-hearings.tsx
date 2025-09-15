@@ -18,6 +18,7 @@ export default function UpcomingHearings({ initialHearings }: UpcomingHearingsPr
   const [weeksToShow, setWeeksToShow] = useState('2');
 
   const filteredHearings = useMemo(() => {
+    if (!initialHearings) return [];
     const today = startOfToday();
     const futureDate = addWeeks(today, parseInt(weeksToShow, 10));
     return initialHearings.filter((hearing) => {
@@ -27,77 +28,73 @@ export default function UpcomingHearings({ initialHearings }: UpcomingHearingsPr
   }, [initialHearings, weeksToShow]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Display:</span>
-            <Select value={weeksToShow} onValueChange={setWeeksToShow}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select weeks to display" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="1">Next 1 Week</SelectItem>
-                    <SelectItem value="2">Next 2 Weeks</SelectItem>
-                    <SelectItem value="4">Next 4 Weeks</SelectItem>
-                    <SelectItem value="8">Next 8 Weeks</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Display:</span>
+          <Select value={weeksToShow} onValueChange={setWeeksToShow}>
+              <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select weeks to display" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="1">Next 1 Week</SelectItem>
+                  <SelectItem value="2">Next 2 Weeks</SelectItem>
+                  <SelectItem value="4">Next 4 Weeks</SelectItem>
+                  <SelectItem value="8">Next 8 Weeks</SelectItem>
+              </SelectContent>
+          </Select>
       </div>
       
       {filteredHearings.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-2">
           {filteredHearings.map((hearing) => (
             <Card key={hearing.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-headline text-lg">{hearing.type}</CardTitle>
-                <CardDescription className="flex items-center gap-2 pt-1">
-                    <Briefcase className="h-4 w-4" /> 
-                    {hearing.case_title || `Case #${hearing.case_number}`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-3">
-                <div className="flex items-start gap-3">
-                  <CalendarDays className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold">{format(new Date(hearing.date), 'EEEE, MMMM d, yyyy')}</p>
-                    <p className="text-sm text-muted-foreground">Date</p>
-                  </div>
+                <CardHeader className="p-4">
+                    <CardTitle className="font-headline text-base">{hearing.type}</CardTitle>
+                    <CardDescription className="flex items-center gap-2 pt-1 text-xs">
+                        <Briefcase className="h-3.5 w-3.5" /> 
+                        {hearing.case_title || `Case #${hearing.case_number}`}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 flex-grow space-y-2">
+                    <div className="flex items-start gap-2 text-xs">
+                        <CalendarDays className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />
+                        <div>
+                            <p className="font-semibold">{format(new Date(hearing.date), 'E, MMM d, yyyy')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs">
+                        <Clock className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />
+                        <div>
+                            <p className="font-semibold">{format(new Date(`1970-01-01T${hearing.time}`), 'h:mm a')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs">
+                        <MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />
+                        <div>
+                            <p className="font-semibold">{hearing.location}</p>
+                        </div>
+                    </div>
+                </CardContent>
+                <div className="px-4 pb-4">
+                    <SyncDialog hearing={hearing}>
+                        <Button className="w-full" size="sm">
+                            <CalendarPlus className="mr-2 h-4 w-4" />
+                            Sync
+                        </Button>
+                    </SyncDialog>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold">{format(new Date(`1970-01-01T${hearing.time}`), 'h:mm a')}</p>
-                    <p className="text-sm text-muted-foreground">Time</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold">{hearing.location}</p>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                  </div>
-                </div>
-              </CardContent>
-              <div className="p-6 pt-0">
-                <SyncDialog hearing={hearing}>
-                    <Button className="w-full">
-                        <CalendarPlus className="mr-2 h-4 w-4" />
-                        Sync to Calendar
-                    </Button>
-                </SyncDialog>
-              </div>
             </Card>
           ))}
         </div>
       ) : (
-        <Card className="col-span-full flex flex-col items-center justify-center py-20">
-            <CalendarDays className="h-16 w-16 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-semibold font-headline">No Upcoming Hearings</h3>
-            <p className="mt-2 text-center text-muted-foreground">
-                There are no hearings scheduled in the selected timeframe. <br />
-                Try selecting a wider date range or searching for a specific case.
-            </p>
+        <Card className="col-span-full flex flex-col items-center justify-center py-10 text-center">
+            <CardContent className='p-6'>
+                <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto" />
+                <h3 className="mt-4 text-base font-semibold font-headline">No Upcoming Hearings</h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                    There are no hearings scheduled in the selected timeframe.
+                </p>
+            </CardContent>
         </Card>
       )}
     </div>
