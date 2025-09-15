@@ -40,18 +40,19 @@ export default function AddCasePage() {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     startTransition(async () => {
-        try {
-            await addCase(values);
+        const result = await addCase(values);
+        if (result.success) {
             toast({
                 title: "Case Created",
                 description: `Case "${values.title}" has been successfully created.`,
             });
-        } catch (error) {
+            router.push('/my-cases');
+        } else {
             toast({
                 title: "Error",
-                description: "Failed to create case. Please try again.",
+                description: result.message || "Failed to create case. Please try again.",
                 variant: "destructive"
-            })
+            });
         }
     });
   };

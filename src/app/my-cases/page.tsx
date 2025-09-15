@@ -1,13 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
+import { getCases } from '@/lib/actions/cases';
 
-// This is mock data. In a real app, you would fetch this from a database.
-const myCases = [
-    { id: '1', title: 'State v. John Doe', case_number: 'CV-2023-1234', status: 'Open' },
-    { id: '2', title: 'Smith vs. Acme Corp', case_number: 'CR-2024-0012', status: 'Pending' },
-];
+export default async function MyCasesPage() {
+  const myCases = await getCases();
 
-export default function MyCasesPage() {
   return (
     <div className="flex justify-center items-start min-h-screen bg-background p-4">
       <Card className="w-full max-w-4xl">

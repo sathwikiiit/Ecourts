@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,6 +8,7 @@ import type { Case } from '@/lib/types';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { addCase } from '@/lib/actions/cases';
+import { useRouter } from 'next/navigation';
 
 type CaseSearchResultsProps = {
     loading: boolean;
@@ -28,21 +29,23 @@ function CaseDetailItem({ label, value }: { label: string, value?: string | numb
 export default function CaseSearchResults({ loading, results, searched }: CaseSearchResultsProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleAddCase = (caseItem: Case) => {
     startTransition(async () => {
-        try {
-            await addCase(caseItem);
+        const result = await addCase(caseItem);
+        if (result.success) {
             toast({
                 title: "Case Added",
                 description: `Case "${caseItem.title}" has been added to your cases.`,
             });
-        } catch (error) {
+            router.push('/my-cases');
+        } else {
             toast({
                 title: "Error",
-                description: "Failed to add case. Please try again.",
+                description: result.message || "Failed to add case. Please try again.",
                 variant: "destructive"
-            })
+            });
         }
     });
   }
