@@ -5,27 +5,27 @@ import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
 import { districts as staticDistricts, complexes as staticComplexes, states as staticStates } from '@/app/data';
 
 export async function getStates(): Promise<State[]> {
-    if (!API_KEY) return staticStates;
+    if (!API_KEY) return [];
     try {
         const response = await fetch(`${API_BASE_URL}/static/district-court/states`, {
             method: 'GET',
             headers: getAuthHeaders(),
         });
         if (!response.ok) {
-            console.error('Failed to fetch states, falling back to static data', response.status, await response.text());
-            return staticStates;
+            console.error('Failed to fetch states, falling back to empty array', response.status, await response.text());
+            return [];
         }
         const data = await response.json();
-        return data.states || staticStates;
+        return data.states || [];
     } catch (error) {
         console.error('Error fetching states:', error);
-        return staticStates;
+        return [];
     }
 }
 
 
 export async function getDistricts(stateId?: string): Promise<District[]> {
-    if (!API_KEY) return staticDistricts.filter(d => !stateId || d.stateId === stateId);
+    if (!API_KEY || !stateId) return [];
     try {
         const body: { all?: boolean, stateId?: string } = stateId ? { stateId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
@@ -34,19 +34,19 @@ export async function getDistricts(stateId?: string): Promise<District[]> {
             body: JSON.stringify(body),
         });
         if (!response.ok) {
-            console.error('Failed to fetch districts, falling back to static data', response.status, await response.text());
-            return staticDistricts.filter(d => !stateId || d.stateId === stateId);
+            console.error('Failed to fetch districts, falling back to empty array', response.status, await response.text());
+            return [];
         }
         const data = await response.json();
-        return data.districts || staticDistricts.filter(d => !stateId || d.stateId === stateId);
+        return data.districts || [];
     } catch (error) {
         console.error('Error fetching districts:', error);
-        return staticDistricts.filter(d => !stateId || d.stateId === stateId);
+        return [];
     }
 }
 
 export async function getComplexes(districtId?: string): Promise<Complex[]> {
-    if (!API_KEY) return staticComplexes.filter(c => !districtId || c.districtId === districtId);
+    if (!API_KEY || !districtId) return [];
     try {
         const body: { all?: boolean, districtId?: string } = districtId ? { districtId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/complexes`, {
@@ -55,13 +55,13 @@ export async function getComplexes(districtId?: string): Promise<Complex[]> {
             body: JSON.stringify(body),
         });
         if (!response.ok) {
-            console.error('Failed to fetch complexes, falling back to static data', response.status, await response.text());
-            return staticComplexes.filter(c => !districtId || c.districtId === districtId);
+            console.error('Failed to fetch complexes, falling back to empty array', response.status, await response.text());
+            return [];
         }
         const data = await response.json();
-        return data.complexes || staticComplexes.filter(c => !districtId || c.districtId === districtId);
+        return data.complexes || [];
     } catch (error) {
         console.error('Error fetching complexes:', error);
-        return staticComplexes.filter(c => !districtId || c.districtId === districtId);
+        return [];
     }
 }

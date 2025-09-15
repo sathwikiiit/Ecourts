@@ -49,6 +49,8 @@ export default function SearchByPartyPage() {
             return;
         }
         setLoadingDistricts(true);
+        setDistrictId('');
+        setDistricts([]);
         const districtsData = await getDistricts(stateId);
         setDistricts(districtsData);
         setLoadingDistricts(false);
@@ -64,6 +66,8 @@ export default function SearchByPartyPage() {
             return;
         }
         setLoadingComplexes(true);
+        setComplexId('');
+        setComplexes([]);
         const complexesData = await getComplexes(districtId);
         setComplexes(complexesData);
         setLoadingComplexes(false);
@@ -107,12 +111,18 @@ export default function SearchByPartyPage() {
                             <Label htmlFor="state">State</Label>
                             <Select value={stateId} onValueChange={(value) => setStateId(value === 'all' ? '' : value)} disabled={loadingStates}>
                                 <SelectTrigger id="state">
-                                    <SelectValue placeholder={loadingStates ? "Loading..." : "All States"} />
+                                    <SelectValue placeholder={loadingStates ? "Loading..." : "Select State"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All States</SelectItem>
-                                    <SelectSeparator />
-                                    {states.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                    {states.length > 0 ? (
+                                        <>
+                                            <SelectItem value="all">All States</SelectItem>
+                                            <SelectSeparator />
+                                            {states.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        </>
+                                    ) : (
+                                        <SelectItem value="none" disabled>No states found</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -120,12 +130,18 @@ export default function SearchByPartyPage() {
                             <Label htmlFor="district">District</Label>
                             <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)} disabled={!stateId || loadingDistricts}>
                                 <SelectTrigger id="district">
-                                    <SelectValue placeholder={loadingDistricts ? "Loading..." : "All Districts"} />
+                                    <SelectValue placeholder={loadingDistricts ? "Loading..." : "Select District"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Districts</SelectItem>
-                                    <SelectSeparator />
-                                    {districts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                                    {districts.length > 0 ? (
+                                        <>
+                                            <SelectItem value="all">All Districts</SelectItem>
+                                            <SelectSeparator />
+                                            {districts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                                        </>
+                                     ) : (
+                                        <SelectItem value="none" disabled>{stateId ? 'No districts found' : 'Select a state first'}</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -133,12 +149,18 @@ export default function SearchByPartyPage() {
                             <Label htmlFor="complex">Court Complex</Label>
                             <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)} disabled={!districtId || loadingComplexes}>
                                 <SelectTrigger id="complex">
-                                    <SelectValue placeholder={loadingComplexes ? "Loading..." : "All Complexes"} />
+                                    <SelectValue placeholder={loadingComplexes ? "Loading..." : "Select Complex"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Complexes</SelectItem>
-                                    <SelectSeparator />
-                                    {complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                    {complexes.length > 0 ? (
+                                        <>
+                                            <SelectItem value="all">All Complexes</SelectItem>
+                                            <SelectSeparator />
+                                            {complexes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                        </>
+                                    ) : (
+                                        <SelectItem value="none" disabled>{districtId ? 'No complexes found' : 'Select a district first'}</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
