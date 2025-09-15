@@ -17,9 +17,15 @@ export interface Hearing {
   case_number?: string;
 }
 
+export interface State {
+    id: string;
+    name: string;
+}
+
 export interface District {
   id: string;
   name: string;
+  stateId: string;
 }
 
 export interface Complex {

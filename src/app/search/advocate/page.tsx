@@ -5,8 +5,8 @@ import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { searchCasesByAdvocate } from '@/lib/actions/search';
-import { getDistricts, getComplexes } from '@/lib/actions/static';
-import type { Case, District, Complex } from '@/lib/types';
+import { getStates, getDistricts, getComplexes } from '@/lib/actions/static';
+import type { Case, District, Complex, State } from '@/lib/types';
 import CaseSearchResults from '@/components/dashboard/case-search-results';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSe
 
 export default function SearchByAdvocatePage() {
   const [advocateName, setAdvocateName] = useState('');
+  const [stateId, setStateId] = useState('');
   const [districtId, setDistrictId] = useState('');
   const [complexId, setComplexId] = useState('');
   const [stage, setStage] = useState<'PENDING' | 'DISPOSED' | 'BOTH'>('PENDING');
@@ -21,20 +22,53 @@ export default function SearchByAdvocatePage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
+  const [states, setStates] = useState<State[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [complexes, setComplexes] = useState<Complex[]>([]);
-  const [loadingFilters, setLoadingFilters] = useState(true);
+
+  const [loadingStates, setLoadingStates] = useState(true);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingComplexes, setLoadingComplexes] = useState(false);
 
   useEffect(() => {
-    async function loadFilters() {
-      setLoadingFilters(true);
-      const [districtsData, complexesData] = await Promise.all([getDistricts(), getComplexes()]);
-      setDistricts(districtsData);
-      setComplexes(complexesData);
-      setLoadingFilters(false);
+    async function loadStates() {
+      setLoadingStates(true);
+      const statesData = await getStates();
+      setStates(statesData);
+      setLoadingStates(false);
     }
-    loadFilters();
+    loadStates();
   }, []);
+
+  useEffect(() => {
+    async function loadDistricts() {
+        if (!stateId) {
+            setDistricts([]);
+            setDistrictId('');
+            return;
+        }
+        setLoadingDistricts(true);
+        const districtsData = await getDistricts(stateId);
+        setDistricts(districtsData);
+        setLoadingDistricts(false);
+    }
+    loadDistricts();
+  }, [stateId]);
+
+  useEffect(() => {
+    async function loadComplexes() {
+        if (!districtId) {
+            setComplexes([]);
+            setComplexId('');
+            return;
+        }
+        setLoadingComplexes(true);
+        const complexesData = await getComplexes(districtId);
+        setComplexes(complexesData);
+        setLoadingComplexes(false);
+    }
+    loadComplexes();
+  }, [districtId]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,10 +103,23 @@ export default function SearchByAdvocatePage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
+                            <Label htmlFor="state">State</Label>
+                            <Select value={stateId} onValueChange={(value) => setStateId(value === 'all' ? '' : value)} disabled={loadingStates}>
+                                <SelectTrigger id="state">
+                                    <SelectValue placeholder={loadingStates ? "Loading..." : "All States"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All States</SelectItem>
+                                    <SelectSeparator />
+                                    {states.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
                             <Label htmlFor="district">District</Label>
-                            <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)} disabled={loadingFilters}>
+                            <Select value={districtId} onValueChange={(value) => setDistrictId(value === 'all' ? '' : value)} disabled={!stateId || loadingDistricts}>
                                 <SelectTrigger id="district">
-                                    <SelectValue placeholder={loadingFilters ? "Loading..." : "All Districts"} />
+                                    <SelectValue placeholder={loadingDistricts ? "Loading..." : "All Districts"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Districts</SelectItem>
@@ -83,9 +130,9 @@ export default function SearchByAdvocatePage() {
                         </div>
                         <div>
                             <Label htmlFor="complex">Court Complex</Label>
-                             <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)} disabled={loadingFilters}>
+                             <Select value={complexId} onValueChange={(value) => setComplexId(value === 'all' ? '' : value)} disabled={!districtId || loadingComplexes}>
                                 <SelectTrigger id="complex">
-                                    <SelectValue placeholder={loadingFilters ? "Loading..." : "All Complexes"} />
+                                    <SelectValue placeholder={loadingComplexes ? "Loading..." : "All Complexes"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Complexes</SelectItem>
@@ -94,6 +141,8 @@ export default function SearchByAdvocatePage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                    </div>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                         <div>
                             <Label htmlFor="stage">Case Stage</Label>
                             <Select value={stage} onValueChange={(v) => setStage(v as any)}>

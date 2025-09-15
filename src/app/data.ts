@@ -13,6 +13,11 @@ export const courts = [
 ];
 
 // This is fallback data in case the API fails
+export const states = [
+    { id: '1', name: 'Delhi' },
+]
+
+// This is fallback data in case the API fails
 export const complexes = [
     {id: '1', name: 'Tis Hazari Court Complex', districtId: '1' },
     {id: '2', name: 'Karkardooma Court Complex', districtId: '2'},
@@ -25,11 +30,11 @@ export const complexes = [
 
 // This is fallback data in case the API fails
 export const districts = [
-    {id: '1', name: 'Central Delhi'},
-    {id: '2', name: 'East Delhi'},
-    {id: '3', name: 'New Delhi'},
-    {id: '4', name: 'North West Delhi'},
-    {id: '5', name: 'South West Delhi'},
-    {id: '6', name: 'South East Delhi'},
-    {id: '7', name: 'Rouse Avenue'},
+    {id: '1', name: 'Central Delhi', stateId: '1'},
+    {id: '2', name: 'East Delhi', stateId: '1'},
+    {id: '3', name: 'New Delhi', stateId: '1'},
+    {id: '4', name: 'North West Delhi', stateId: '1'},
+    {id: '5', name: 'South West Delhi', stateId: '1'},
+    {id: '6', name: 'South East Delhi', stateId: '1'},
+    {id: '7', name: 'Rouse Avenue', stateId: '1'},
 ]

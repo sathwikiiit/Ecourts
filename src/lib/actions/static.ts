@@ -1,48 +1,71 @@
 'use server';
 
-import type { District, Complex } from '@/lib/types';
+import type { District, Complex, State } from '@/lib/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
-import { districts as staticDistricts, complexes as staticComplexes } from '@/app/data';
+import { districts as staticDistricts, complexes as staticComplexes, states as staticStates } from '@/app/data';
 
-export async function getDistricts(): Promise<District[]> {
+export async function getStates(): Promise<State[]> {
     noStore();
-    if (!API_KEY) return staticDistricts; // Fallback to static data
+    if (!API_KEY) return staticStates;
     try {
-        const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/static/district-court/states`, {
+            method: 'GET',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ all: true }),
         });
         if (!response.ok) {
-            console.error('Failed to fetch districts, falling back to static data', response.status, await response.text());
-            return staticDistricts;
+            console.error('Failed to fetch states, falling back to static data', response.status, await response.text());
+            return staticStates;
         }
         const data = await response.json();
-        return data.districts || staticDistricts;
+        return data.states || staticStates;
     } catch (error) {
-        console.error('Error fetching districts:', error);
-        return staticDistricts;
+        console.error('Error fetching states:', error);
+        return staticStates;
     }
 }
 
-export async function getComplexes(): Promise<Complex[]> {
+
+export async function getDistricts(stateId?: string): Promise<District[]> {
     noStore();
-    if (!API_KEY) return staticComplexes; // Fallback to static data
+    if (!API_KEY) return staticDistricts; 
     try {
+        const body: { all?: boolean, stateId?: string } = stateId ? { stateId } : { all: true };
+        const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch districts, falling back to static data', response.status, await response.text());
+            return staticDistricts.filter(d => !stateId || d.stateId === stateId);
+        }
+        const data = await response.json();
+        return data.districts || staticDistricts.filter(d => !stateId || d.stateId === stateId);
+    } catch (error) {
+        console.error('Error fetching districts:', error);
+        return staticDistricts.filter(d => !stateId || d.stateId === stateId);
+    }
+}
+
+export async function getComplexes(districtId?: string): Promise<Complex[]> {
+    noStore();
+    if (!API_KEY) return staticComplexes; 
+    try {
+        const body: { all?: boolean, districtId?: string } = districtId ? { districtId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/complexes`, {
             method: 'POST',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ all: true }),
+            body: JSON.stringify(body),
         });
         if (!response.ok) {
             console.error('Failed to fetch complexes, falling back to static data', response.status, await response.text());
-            return staticComplexes;
+            return staticComplexes.filter(c => !districtId || c.districtId === districtId);
         }
         const data = await response.json();
-        return data.complexes || staticComplexes;
+        return data.complexes || staticComplexes.filter(c => !districtId || c.districtId === districtId);
     } catch (error) {
         console.error('Error fetching complexes:', error);
-        return staticComplexes;
+        return staticComplexes.filter(c => !districtId || c.districtId === districtId);
     }
 }
