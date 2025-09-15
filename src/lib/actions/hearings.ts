@@ -75,6 +75,9 @@ export async function getCaseHearings(caseId: string): Promise<Hearing[]> {
     // We can get a "cause list" for a court, which is a list of hearings.
     // We will simulate this by filtering the cause list.
     // This is not ideal, but it's a workaround given the API.
+    if (!API_KEY) {
+      return [];
+    }
     try {
       const today = new Date();
       // We'll fetch for both Civil and Criminal and merge

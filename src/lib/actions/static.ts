@@ -28,7 +28,7 @@ export async function getStates(): Promise<State[]> {
 
 export async function getDistricts(stateId?: string): Promise<District[]> {
     noStore();
-    if (!API_KEY) return staticDistricts; 
+    if (!API_KEY) return staticDistricts.filter(d => !stateId || d.stateId === stateId);
     try {
         const body: { all?: boolean, stateId?: string } = stateId ? { stateId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
@@ -50,7 +50,7 @@ export async function getDistricts(stateId?: string): Promise<District[]> {
 
 export async function getComplexes(districtId?: string): Promise<Complex[]> {
     noStore();
-    if (!API_KEY) return staticComplexes; 
+    if (!API_KEY) return staticComplexes.filter(c => !districtId || c.districtId === districtId);
     try {
         const body: { all?: boolean, districtId?: string } = districtId ? { districtId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/complexes`, {
