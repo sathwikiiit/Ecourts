@@ -68,12 +68,12 @@ type AdvocateSearchOptions = {
     complexId?: string;
 };
 
-export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<Case[]> {
+export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<any[]> {
   noStore();
   if (!options.name) return [];
   if (!API_KEY) {
       console.error("API Key is not configured.");
-      return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
+      return [{ error: 'API Key Not Configured' }];
   }
   try {
     const body: any = {
@@ -99,13 +99,7 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
       console.log('Search by Advocate Results:', searchResults);
 
       if (Array.isArray(searchResults)) {
-          return searchResults.map((item: any, index: number) => ({
-              id: item.cnr || index.toString(),
-              case_number: item.case_no || 'N/A',
-              title: item.party || 'N/A',
-              description: `Advocate: ${item.advocate || 'N/A'}`,
-              status: 'Pending',
-          }));
+          return searchResults;
       }
       return [];
   } catch (error) {

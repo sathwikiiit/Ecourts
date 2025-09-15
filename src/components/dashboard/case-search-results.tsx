@@ -13,16 +13,18 @@ import SyncDialog from './sync-dialog';
 
 type CaseSearchResultsProps = {
     loading: boolean;
-    results: Case[];
+    results: any[];
     searched: boolean;
+    resultType?: 'case' | 'advocate';
 }
 
-export default function CaseSearchResults({ loading, results, searched }: CaseSearchResultsProps) {
+export default function CaseSearchResults({ loading, results, searched, resultType = 'case' }: CaseSearchResultsProps) {
   const [hearings, setHearings] = useState<Record<string, Hearing[]>>({});
   const [hearingsLoading, setHearingsLoading] = useState<Record<string, boolean>>({});
 
   const handleAccordionChange = async (caseId: string) => {
     if (!caseId) return;
+    if (resultType !== 'case') return;
     if (!hearings[caseId]) {
       setHearingsLoading((prev) => ({ ...prev, [caseId]: true }));
       const caseHearings = await getCaseHearings(caseId);
@@ -48,9 +50,31 @@ export default function CaseSearchResults({ loading, results, searched }: CaseSe
   }
 
   if (results.length > 0) {
+    if (resultType === 'advocate') {
+        return (
+            <Accordion type="single" collapsible className="w-full">
+            {results.map((item, index) => (
+              <AccordionItem value={String(index)} key={index}>
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="text-left font-mono text-sm">
+                    Result {index + 1}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
+                        {JSON.stringify(item, null, 2)}
+                    </pre>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )
+    }
+
+    const caseResults = results as Case[];
     return (
         <Accordion type="single" collapsible className="w-full" onValueChange={handleAccordionChange}>
-        {results.map((caseItem) => (
+        {caseResults.map((caseItem) => (
           <AccordionItem value={String(caseItem.id)} key={caseItem.id}>
             <AccordionTrigger className="hover:no-underline">
               <div className="text-left">
