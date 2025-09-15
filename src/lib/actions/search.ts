@@ -41,11 +41,11 @@ export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
     }
 
     const searchResults = await response.json();
-    console.log('Search by Party Results:', searchResults);
+    console.log('Search by Party Results:', JSON.stringify(searchResults, null, 2));
     
     if (Array.isArray(searchResults)) {
         return searchResults.map((item: any, index: number) => ({
-            id: item.cnr || index.toString(),
+            id: `${item.cnr}-${index}`,
             case_number: item.case_number || 'N/A',
             title: item.party_name || 'N/A',
             description: item.petitioner || '',
@@ -98,20 +98,19 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
         }
 
         const searchResults = await response.json();
-        console.log('Search by Advocate Results:', searchResults);
+        console.log('Search by Advocate Results:', JSON.stringify(searchResults, null, 2));
 
-        // The response is an array of objects, where each object has a 'cases' array.
         if (Array.isArray(searchResults)) {
             return searchResults.flatMap((complex: any) => {
                 if (!complex || !Array.isArray(complex.cases)) {
                     console.warn('Unexpected complex object format in advocate search:', complex);
                     return [];
                 }
-                return (complex.cases || []).map((c:any) => ({
-                    id: c.cnr,
-                    case_number: c.caseNumber,
-                    title: c.title,
-                    description: `Advocate: ${c.advocateName}`,
+                return (complex.cases || []).map((c:any, index: number) => ({
+                    id: `${c.cnr}-${index}`, // Create a unique ID
+                    case_number: c.caseNumber || 'N/A',
+                    title: c.title || 'N/A',
+                    description: `Advocate: ${c.advocateName || 'N/A'}`,
                     status: 'Pending'
                 }))
             });
@@ -159,12 +158,12 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
       }
       
       const searchResult = await response.json();
-      console.log('Search by Filing Number Results:', searchResult);
+      console.log('Search by Filing Number Results:', JSON.stringify(searchResult, null, 2));
 
       // The API seems to return a single object, not an array for filing search
       if (searchResult && searchResult.cnr) {
         return [{
-            id: searchResult.cnr,
+            id: searchResult.cnr, // This should be unique for a single result
             case_number: searchResult.case_number || 'N/A',
             title: `${searchResult.petitioner} vs ${searchResult.respondent}`,
             description: `Filing Date: ${searchResult.date_of_filing || 'N/A'}`,
