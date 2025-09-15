@@ -18,7 +18,7 @@ export default function SearchByAdvocatePage() {
   const [districtId, setDistrictId] = useState('');
   const [complexId, setComplexId] = useState('');
   const [stage, setStage] = useState<'PENDING' | 'DISPOSED' | 'BOTH'>('PENDING');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Case[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -163,7 +163,7 @@ export default function SearchByAdvocatePage() {
                     </Button>
                 </form>
 
-                <CaseSearchResults loading={loading} results={results} searched={searched} resultType="advocate" />
+                <CaseSearchResults loading={loading} results={results} searched={searched} />
             </CardContent>
         </Card>
     </div>

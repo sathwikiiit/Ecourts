@@ -69,43 +69,50 @@ type AdvocateSearchOptions = {
 };
 
 export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<any[]> {
-  noStore();
-  if (!options.name) return [];
-  if (!API_KEY) {
-      console.error("API Key is not configured.");
-      return [{ error: 'API Key Not Configured' }];
-  }
-  try {
-    const body: any = {
-        name: options.name,
-        stage: options.stage || 'PENDING',
-    };
+    noStore();
+    if (!options.name) return [];
+    if (!API_KEY) {
+        console.error("API Key is not configured.");
+        return [{ error: 'API Key Not Configured' }];
+    }
+    try {
+        const body: any = {
+            name: options.name,
+            stage: options.stage || 'PENDING',
+        };
 
-    if (options.districtId) body.districtId = options.districtId;
-    if (options.complexId) body.complexId = options.complexId;
+        if (options.districtId) body.districtId = options.districtId;
+        if (options.complexId) body.complexId = options.complexId;
 
-      const response = await fetch(`${API_BASE_URL}/live/district-court/search/advocate`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(body),
-      });
+        const response = await fetch(`${API_BASE_URL}/live/district-court/search/advocate`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(body),
+        });
 
-      if (!response.ok) {
-          console.error('Failed to fetch cases by advocate:', response.status, await response.text());
-          return [];
-      }
+        if (!response.ok) {
+            console.error('Failed to fetch cases by advocate:', response.status, await response.text());
+            return [];
+        }
 
-      const searchResults = await response.json();
-      console.log('Search by Advocate Results:', searchResults);
+        const searchResults = await response.json();
+        console.log('Search by Advocate Results:', searchResults);
 
-      if (Array.isArray(searchResults)) {
-          return searchResults;
-      }
-      return [];
-  } catch (error) {
-      console.error('Error searching cases by advocate:', error);
-      return [];
-  }
+        // The response is an object with a `cases` array
+        if (searchResults && Array.isArray(searchResults.cases)) {
+            return searchResults.cases.map((c:any) => ({
+                id: c.cnr,
+                case_number: c.caseNumber,
+                title: c.title,
+                description: `Advocate: ${c.advocateName}`,
+                status: 'Pending' // Assuming status from context
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error searching cases by advocate:', error);
+        return [];
+    }
 }
 
 type FilingSearchOptions = {
