@@ -41,6 +41,7 @@ export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
     }
 
     const searchResults = await response.json();
+    console.log('Search by Party Results:', searchResults);
     
     if (Array.isArray(searchResults)) {
         return searchResults.map((item: any, index: number) => ({
@@ -95,6 +96,8 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
       }
 
       const searchResults = await response.json();
+      console.log('Search by Advocate Results:', searchResults);
+
       if (Array.isArray(searchResults)) {
           return searchResults.map((item: any, index: number) => ({
               id: item.cnr || index.toString(),
@@ -145,6 +148,8 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
       }
       
       const searchResult = await response.json();
+      console.log('Search by Filing Number Results:', searchResult);
+
       // The API seems to return a single object, not an array for filing search
       if (searchResult && searchResult.cnr) {
         return [{
