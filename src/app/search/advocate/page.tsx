@@ -104,7 +104,7 @@ export default function SearchByAdvocatePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <Label htmlFor="state">State</Label>
-                            <Select value={stateId} onValueChange={(value) => setStateId(value === 'all' ? '' : value)} disabled={loadingStates}>
+                            <Select onValueChange={(value) => setStateId(value === 'all' ? '' : value)} disabled={loadingStates}>
                                 <SelectTrigger id="state">
                                     <SelectValue placeholder={loadingStates ? "Loading..." : "All States"} />
                                 </SelectTrigger>

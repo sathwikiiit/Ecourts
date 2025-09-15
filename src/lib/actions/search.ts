@@ -68,12 +68,12 @@ type AdvocateSearchOptions = {
     complexId?: string;
 };
 
-export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<any[]> {
+export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<Case[]> {
     noStore();
     if (!options.name) return [];
     if (!API_KEY) {
         console.error("API Key is not configured.");
-        return [{ error: 'API Key Not Configured' }];
+        return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
     }
     try {
         const body: any = {
@@ -98,15 +98,17 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
         const searchResults = await response.json();
         console.log('Search by Advocate Results:', searchResults);
 
-        // The response is an object with a `cases` array
-        if (searchResults && Array.isArray(searchResults.cases)) {
-            return searchResults.cases.map((c:any) => ({
-                id: c.cnr,
-                case_number: c.caseNumber,
-                title: c.title,
-                description: `Advocate: ${c.advocateName}`,
-                status: 'Pending' // Assuming status from context
-            }));
+        // The response is an array of objects, where each object has a 'cases' array.
+        if (Array.isArray(searchResults)) {
+            return searchResults.flatMap((complex: any) =>
+                (complex.cases || []).map((c:any) => ({
+                    id: c.cnr,
+                    case_number: c.caseNumber,
+                    title: c.title,
+                    description: `Advocate: ${c.advocateName}`,
+                    status: 'Pending'
+                }))
+            );
         }
         return [];
     } catch (error) {
