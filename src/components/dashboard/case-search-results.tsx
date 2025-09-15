@@ -15,6 +15,16 @@ type CaseSearchResultsProps = {
     searched: boolean;
 }
 
+function CaseDetailItem({ label, value }: { label: string, value?: string | number | null }) {
+    if (!value) return null;
+    return (
+        <div>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-sm font-semibold">{value}</p>
+        </div>
+    );
+}
+
 export default function CaseSearchResults({ loading, results, searched }: CaseSearchResultsProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -76,7 +86,12 @@ export default function CaseSearchResults({ loading, results, searched }: CaseSe
                 </Button>
             </div>
             <AccordionContent>
-              <p className="text-sm text-muted-foreground p-4">Case details will appear here.</p>
+              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-muted/50 rounded-md">
+                <CaseDetailItem label="CNR Number" value={caseItem.cnr} />
+                <CaseDetailItem label="Filing Number" value={caseItem.filingNumber} />
+                <CaseDetailItem label="Filing Year" value={caseItem.filingYear} />
+                <CaseDetailItem label="Advocate" value={caseItem.advocateName} />
+              </div>
             </AccordionContent>
           </AccordionItem>
         ))}

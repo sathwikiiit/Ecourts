@@ -1,9 +1,13 @@
 export interface Case {
-  id: string; // CNR is string
+  id: string;
   case_number: string;
   title: string;
   description: string;
   status: 'Open' | 'Closed' | 'Pending';
+  cnr?: string;
+  advocateName?: string;
+  filingNumber?: string;
+  filingYear?: string;
 }
 
 export interface Hearing {

@@ -45,11 +45,15 @@ export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
     
     if (Array.isArray(searchResults)) {
         return searchResults.map((item: any, index: number) => ({
-            id: `${item.cnr}-${index}`,
+            id: `${item.cnr || item.case_number}-${index}`,
             case_number: item.case_number || 'N/A',
-            title: item.party_name || 'N/A',
+            title: item.party_name || item.title || 'N/A',
             description: item.petitioner || '',
             status: 'Pending',
+            cnr: item.cnr,
+            advocateName: item.advocate,
+            filingNumber: item.filing?.number,
+            filingYear: item.filing?.year,
         }));
     } else {
         console.warn('Search by party did not return an array:', searchResults);
@@ -107,11 +111,15 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
                     return [];
                 }
                 return (complex.cases || []).map((c:any, index: number) => ({
-                    id: `${c.cnr}-${index}`, // Create a unique ID
+                    id: `${c.cnr}-${index}`,
                     case_number: c.caseNumber || 'N/A',
                     title: c.title || 'N/A',
                     description: `Advocate: ${c.advocateName || 'N/A'}`,
-                    status: 'Pending'
+                    status: 'Pending',
+                    cnr: c.cnr,
+                    advocateName: c.advocateName,
+                    filingNumber: c.filing?.number,
+                    filingYear: c.filing?.year,
                 }))
             });
         } else {
@@ -160,14 +168,17 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
       const searchResult = await response.json();
       console.log('Search by Filing Number Results:', JSON.stringify(searchResult, null, 2));
 
-      // The API seems to return a single object, not an array for filing search
-      if (searchResult && searchResult.cnr) {
+      if (searchResult && (searchResult.cnr || searchResult.case_number)) {
         return [{
-            id: searchResult.cnr, // This should be unique for a single result
+            id: searchResult.cnr || `${searchResult.case_number}-0`,
             case_number: searchResult.case_number || 'N/A',
             title: `${searchResult.petitioner} vs ${searchResult.respondent}`,
             description: `Filing Date: ${searchResult.date_of_filing || 'N/A'}`,
             status: 'Pending',
+            cnr: searchResult.cnr,
+            advocateName: searchResult.advocate,
+            filingNumber: searchResult.filing?.number,
+            filingYear: searchResult.filing?.year,
         }];
       } else {
         console.warn('Search by filing number returned unexpected format:', searchResult);
