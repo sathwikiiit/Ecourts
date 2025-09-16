@@ -6,8 +6,8 @@ export interface Case {
   status: 'Open' | 'Closed' | 'Pending';
   cnr?: string;
   advocateName?: string;
-  filingNumber?: string;
-  filingYear?: string;
+  filingNumber?: number;
+  filingYear?: number;
 }
 
 export interface Hearing {

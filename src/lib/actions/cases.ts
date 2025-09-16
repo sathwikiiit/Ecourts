@@ -13,8 +13,8 @@ const AddCaseSchema = z.object({
   status: z.enum(['Open', 'Closed', 'Pending']),
   cnr: z.string().optional().nullable(),
   advocateName: z.string().optional().nullable(),
-  filingNumber: z.string().optional().nullable(),
-  filingYear: z.string().optional().nullable(),
+  filingNumber: z.number().optional().nullable(),
+  filingYear: z.number().optional().nullable(),
 });
 
 export async function addCase(caseData: Omit<Case, 'id'>) {
