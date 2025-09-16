@@ -3,11 +3,18 @@ export interface Case {
   case_number: string;
   title: string;
   description: string;
-  status: 'Open' | 'Closed' | 'Pending';
+  status: string;
   cnr?: string;
   advocateName?: string;
   filingNumber?: number;
   filingYear?: number;
+  details?: {
+    type: string;
+    filingNumber: string;
+    filingDate: string;
+    registrationNumber: string;
+    registrationDate: string;
+  };
 }
 
 export interface Hearing {

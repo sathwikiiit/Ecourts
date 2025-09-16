@@ -1,9 +1,35 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Briefcase } from 'lucide-react';
-import { getCases } from '@/lib/actions/cases';
+'use client';
 
-export default async function MyCasesPage() {
-  const myCases = await getCases();
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Briefcase, Loader2 } from 'lucide-react';
+import { getCases, lookupCaseByCnr } from '@/lib/actions/cases';
+import { useEffect, useState } from 'react';
+import type { Case } from '@/lib/types';
+
+export default function MyCasesPage() {
+  const [myCases, setMyCases] = useState<Case[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCases() {
+      const savedCases = await getCases();
+      const updatedCases = await Promise.all(
+        savedCases.map(async (caseItem) => {
+          if (caseItem.cnr) {
+            const result = await lookupCaseByCnr(caseItem.cnr);
+            if (result.success) {
+              return { ...caseItem, ...result.data, status: result.data.status.caseStage, case_number: result.data.details.filingNumber };
+            }
+          }
+          return caseItem;
+        })
+      );
+      setMyCases(updatedCases);
+      setLoading(false);
+    }
+
+    fetchCases();
+  }, []);
 
   return (
     <div className="flex justify-center items-start min-h-screen bg-background p-4">
@@ -15,7 +41,12 @@ export default async function MyCasesPage() {
           <CardDescription>A list of cases you have saved.</CardDescription>
         </CardHeader>
         <CardContent>
-          {myCases.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-10">
+                <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+                <p className="text-muted-foreground">Loading cases...</p>
+            </div>
+          ) : myCases.length > 0 ? (
             <div className="space-y-4">
               {myCases.map((caseItem) => (
                 <Card key={caseItem.id}>

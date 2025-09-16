@@ -45,30 +45,6 @@ async function getUpcomingHearingsForCourt(courtId: string, type: 'CIVIL' | 'CRI
       );
 }
 
-export async function getUpcomingHearings(): Promise<Hearing[]> {
-  noStore();
-  if (!API_KEY) {
-    console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
-    return [];
-  }
-  try {
-    const today = new Date();
-    // For simplicity, we'll fetch from the first court in our static data.
-    // In a real app, the user would select a court.
-    const courtId = courts[0].id; 
-    
-    const [civilHearings, criminalHearings] = await Promise.all([
-      getUpcomingHearingsForCourt(courtId, 'CIVIL', today),
-      getUpcomingHearingsForCourt(courtId, 'CRIMINAL', today)
-    ]);
-    
-    return [...civilHearings, ...criminalHearings];
-  } catch (error) {
-    console.error('Error fetching upcoming hearings:', error);
-    return [];
-  }
-}
-
 export async function getCaseHearings(caseId: string): Promise<Hearing[]> {
     noStore();
     // The API spec does not provide an endpoint to get hearings for a case.
