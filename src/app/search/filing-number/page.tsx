@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { searchCasesByAdvocate } from '@/lib/actions/cases';
+import { searchCasesByFilingNumber } from '@/lib/actions/cases';
 import type { Case } from '@/lib/types';
 import CaseSearchResults from '@/components/dashboard/case-search-results';
 
 const formSchema = z.object({
-  advocateName: z.string().min(1, 'Advocate name is required.'),
+  filingNumber: z.string().min(1, 'Filing number is required.'),
 });
 
-export default function SearchByAdvocatePage() {
+export default function SearchByFilingNumberPage() {
   const [searchResults, setSearchResults] = useState<Case[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -24,14 +24,14 @@ export default function SearchByAdvocatePage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      advocateName: '',
+      filingNumber: '',
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     setSearched(true);
-    const results = await searchCasesByAdvocate(values.advocateName);
+    const results = await searchCasesByFilingNumber(values.filingNumber);
     setSearchResults(results);
     setLoading(false);
   };
@@ -40,20 +40,20 @@ export default function SearchByAdvocatePage() {
     <div className="flex justify-center items-start min-h-screen bg-background p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Search by Advocate</CardTitle>
-          <CardDescription>Find cases by advocate name.</CardDescription>
+          <CardTitle>Search by Filing Number</CardTitle>
+          <CardDescription>Find cases by filing number.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="advocateName"
+                name="filingNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Advocate Name</FormLabel>
+                    <FormLabel>Filing Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
+                      <Input placeholder="e.g., 12345/2023" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

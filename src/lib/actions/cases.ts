@@ -1,86 +1,120 @@
 'use server';
 
+import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import type { Case } from '@/lib/types';
-import { revalidatePath } from 'next/cache';
-import { db } from '@/lib/db';
-import { z } from 'zod';
+import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
 
-const AddCaseSchema = z.object({
-  cnr: z.string(),
-  title: z.string(),
-  details: z.object({
-    type: z.string(),
-    filingNumber: z.string(),
-    filingDate: z.string(),
-    registrationNumber: z.string(),
-    registrationDate: z.string(),
-  }),
-  status: z.object({
-    firstHearingDate: z.string(),
-    nextHearingDate: z.string(),
-    decisionDate: z.string().nullable(),
-    natureOfDisposal: z.string(),
-    caseStage: z.string(),
-    courtNumberAndJudge: z.string(),
-  }),
-});
-
-export async function lookupCaseByCnr(cnr: string) {
-    try {
-        const response = await fetch('https://court-api.kleopatra.io/api/core/live/district-court/case', {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify({ cnr }),
-        });
-
-        if (!response.ok) {
-            return { success: false, message: "Failed to lookup case." };
-        }
-
-        const data = await response.json();
-        return { success: true, data };
-    } catch (error: any) {
-        console.error("Failed to lookup case:", error);
-        return { success: false, message: error.message };
-    }
-}
-
-export async function addCase(caseData: any) {
-    const parsedData = AddCaseSchema.parse(caseData);
-
-    const stmt = db.prepare(`
-        INSERT INTO cases (case_number, title, description, status, cnr, advocate_name, filing_number, filing_year)
-        VALUES (@case_number, @title, @description, @status, @cnr, @advocateName, @filingNumber, @filingYear)
-    `);
-
-    try {
-        stmt.run({
-            case_number: parsedData.details.filingNumber,
-            title: parsedData.title,
-            description: `Type: ${parsedData.details.type}`,
-            status: parsedData.status.caseStage,
-            cnr: parsedData.cnr,
-            advocateName: null,
-            filingNumber: parseInt(parsedData.details.filingNumber.split('/')[0]),
-            filingYear: new Date(parsedData.details.filingDate).getFullYear()
-        });
-        revalidatePath('/my-cases');
-        return { success: true, message: `Case "${parsedData.title}" has been added.` };
-    } catch (error: any) {
-        console.error("Failed to add case:", error);
-        return { success: false, message: error.message };
-    }
-}
+// In-memory store for simplicity
+let cases: Case[] = [];
+let caseIdCounter = 1;
 
 export async function getCases(): Promise<Case[]> {
+  noStore();
+  return Promise.resolve(cases);
+}
+
+export async function addCase(caseData: Omit<Case, 'id'>): Promise<{ success: boolean, message?: string }> {
+  const newCase: Case = { ...caseData, id: String(caseIdCounter++) };
+  cases.push(newCase);
+  revalidatePath('/my-cases');
+  return Promise.resolve({ success: true });
+}
+
+export async function searchCasesByAdvocate(advocateName: string): Promise<Case[]> {
+    noStore();
+    if (!API_KEY) {
+      console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
+      return [];
+    }
+  
     try {
-        const stmt = db.prepare("SELECT id, case_number, title, description, status, cnr, advocate_name as advocateName, filing_number as filingNumber, filing_year as filingYear FROM cases ORDER BY id DESC");
-        const cases = stmt.all() as Case[];
-        return cases;
-    } catch (error) {
-        console.error("Failed to get cases:", error);
+      const response = await fetch(`${API_BASE_URL}/cases/search/advocate`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ advocateName }),
+      });
+  
+      if (!response.ok) {
+        console.error('Failed to search cases by advocate:', response.status, await response.text());
         return [];
+      }
+  
+      const result = await response.json();
+      return result.cases.map((c: any) => ({
+        id: c.cnr, // Assuming cnr is unique
+        title: `${c.filingNumber} - ${c.advocateName}`,
+        description: c.caseType,
+        status: c.caseStatus,
+        cnr: c.cnr,
+        advocateName: c.advocateName,
+        filingNumber: c.filingNumber,
+        filingYear: c.filingYear,
+      }));
+    } catch (error) {
+      console.error('Error searching cases by advocate:', error);
+      return [];
+    }
+  }
+
+  export async function searchCasesByFilingNumber(filingNumber: string): Promise<Case[]> {
+    noStore();
+    if (!API_KEY) {
+      console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
+      return [];
+    }
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/cases/search/filing-number`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ filingNumber }),
+      });
+  
+      if (!response.ok) {
+        console.error('Failed to search cases by filing number:', response.status, await response.text());
+        return [];
+      }
+  
+      const result = await response.json();
+      return result.cases.map((c: any) => ({
+        id: c.cnr, // Assuming cnr is unique
+        title: `${c.filingNumber} - ${c.advocateName}`,
+        description: c.caseType,
+        status: c.caseStatus,
+        cnr: c.cnr,
+        advocateName: c.advocateName,
+        filingNumber: c.filingNumber,
+        filingYear: c.filingYear,
+      }));
+    } catch (error) {
+      console.error('Error searching cases by filing number:', error);
+      return [];
+    }
+  }
+
+export async function lookupCaseByCnr(cnr: string): Promise<{ success: boolean, data?: any, message?: string}> {
+    noStore();
+    if (!API_KEY) {
+      return { success: false, message: "API Key is not configured." };
+    }
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/cases/search/cnr`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ cnr }),
+      });
+  
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('Failed to lookup case by CNR:', response.status, errorBody);
+        return { success: false, message: `Failed to lookup case: ${response.statusText}` };
+      }
+  
+      const result = await response.json();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Error looking up case by CNR:', error);
+      return { success: false, message: "An unexpected error occurred." };
     }
 }

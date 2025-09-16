@@ -12,7 +12,7 @@ import {
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Briefcase, Search } from 'lucide-react';
 
 export default function HomePage() {
 
@@ -26,11 +26,29 @@ export default function HomePage() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-        <div className="p-4">
+        <div className="p-4 space-y-2">
             <Link href="/cases/new" passHref>
-              <Button className="w-full">
+              <Button className="w-full justify-start">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Case
+                Add Case by CNR
+              </Button>
+            </Link>
+            <Link href="/search/advocate" passHref>
+              <Button className="w-full justify-start" variant="secondary">
+                <Search className="mr-2 h-4 w-4" />
+                Search by Advocate
+              </Button>
+            </Link>
+            <Link href="/search/filing-number" passHref>
+                <Button className="w-full justify-start" variant="secondary">
+                    <Search className="mr-2 h-4 w-4" />
+                    Search by Filing No.
+                </Button>
+            </Link>
+            <Link href="/my-cases" passHref>
+              <Button className="w-full justify-start" variant="outline">
+                <Briefcase className="mr-2 h-4 w-4" />
+                My Cases
               </Button>
             </Link>
           </div>

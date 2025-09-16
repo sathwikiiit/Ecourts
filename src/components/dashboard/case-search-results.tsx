@@ -1,103 +1,73 @@
-'use client';
-
-import { PlusCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { Case } from '@/lib/types';
-import { useTransition } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { addCase } from '@/lib/actions/cases';
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { Loader2, Plus } from 'lucide-react';
 
-type CaseSearchResultsProps = {
-    loading: boolean;
-    results: any[];
-    searched: boolean;
-}
+export default function CaseSearchResults({ results, loading, searched }: { results: Case[], loading: boolean, searched: boolean }) {
+    const { toast } = useToast();
+    const router = useRouter();
+    const [isAdding, startAdding] = useTransition();
 
-function CaseDetailItem({ label, value }: { label: string, value?: string | number | null }) {
-    if (!value) return null;
-    return (
-        <div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="text-sm font-semibold">{value}</p>
-        </div>
-    );
-}
-
-export default function CaseSearchResults({ loading, results, searched }: CaseSearchResultsProps) {
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const handleAddCase = (caseItem: Case) => {
-    startTransition(async () => {
-        const result = await addCase(caseItem);
-        if (result.success) {
-            toast({
-                title: "Case Added",
-                description: `Case "${caseItem.title}" has been added to your cases.`,
-            });
-            router.push('/my-cases');
-        } else {
-            toast({
-                title: "Error",
-                description: result.message || "Failed to add case. Please try again.",
-                variant: "destructive"
-            });
-        }
-    });
-  }
+    const handleAddCase = (caseData: Case) => {
+        startAdding(async () => {
+            const result = await addCase(caseData);
+            if (result.success) {
+                toast({
+                    title: "Case Added",
+                    description: `Case "${caseData.title}" has been successfully added.`,
+                });
+                router.push('/my-cases');
+            } else {
+                toast({
+                    title: "Error",
+                    description: result.message || "Failed to add case. Please try again.",
+                    variant: "destructive"
+                });
+            }
+        });
+    }
 
   if (loading) {
     return (
-        <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!searched) {
+    return (
+        <div className="text-center p-8">
+            <p className="text-muted-foreground">Search for a case to see results.</p>
         </div>
     );
   }
 
-  if (searched && results.length === 0) {
+  if (results.length === 0) {
     return (
-        <p className="text-center text-sm text-muted-foreground pt-4">No cases found.</p>
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">No cases found.</p>
+      </div>
     );
   }
 
-    const caseResults = results as Case[];
-    return (
-        <Accordion type="single" collapsible className="w-full">
-        {caseResults.map((caseItem) => (
-          <AccordionItem value={String(caseItem.id)} key={caseItem.id}>
-            <div className="flex items-center w-full py-2">
-                <AccordionTrigger className="flex-1 py-2 hover:no-underline">
-                    <div className="text-left flex-1 pr-4">
-                        <p className="font-semibold truncate">{caseItem.title}</p>
-                        <p className="text-sm text-muted-foreground">{caseItem.case_number}</p>
-                    </div>
-                </AccordionTrigger>
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="mr-2 shrink-0" 
-                    onClick={() => handleAddCase(caseItem)}
-                    disabled={isPending}
-                    >
-                    <PlusCircle className="h-4 w-4" />
-                </Button>
-            </div>
-            <AccordionContent>
-              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-muted/50 rounded-md">
-                <CaseDetailItem label="CNR Number" value={caseItem.cnr} />
-                <CaseDetailItem label="Filing Number" value={caseItem.filingNumber} />
-                <CaseDetailItem label="Filing Year" value={caseItem.filingYear} />
-                <CaseDetailItem label="Advocate" value={caseItem.advocateName} />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    );
+  return (
+    <div className="space-y-4">
+      {results.map((result) => (
+        <div key={result.id} className="flex items-center justify-between rounded-lg border p-4">
+          <div>
+            <p className="font-semibold">{result.title}</p>
+            <p className="text-sm text-muted-foreground">{result.description}</p>
+          </div>
+          <Button size="sm" onClick={() => handleAddCase(result)} disabled={isAdding}>
+            {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+            Add Case
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
 }
