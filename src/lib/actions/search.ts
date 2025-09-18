@@ -190,3 +190,59 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
       return [];
   }
 }
+export async function lookupCaseByCnr(cnr: string): Promise<{ success: boolean, data?: Case, message?: string}> {
+    noStore();
+    if (!API_KEY) {
+      return { success: false, message: "API Key is not configured." };
+    }
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/live/district-court/case`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ cnr }),
+      });
+  
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('Failed to lookup case by CNR:', response.status, errorBody);
+        return { success: false, message: `Failed to lookup case: ${response.statusText}` };
+      }
+  
+      const responseText = await response.text();
+      if (!responseText) {
+        return { success: false, message: `No data returned for CNR: ${cnr}` };
+      }
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON response:', responseText);
+        return { success: false, message: 'Invalid response from the server.' };
+      }
+
+      // Transform the raw result into our Case type
+      const caseData: Case = {
+        id: result.cnr, // Assuming cnr is unique and can be used as an id
+        cnr: result.cnr,
+        title: result.title,
+        case_number: result.details.filingNumber, // Or another appropriate field
+        description: `Case type: ${result.details.type}`,
+        status: result.status.caseStage,
+        details: result.details,
+        statusDetails: result.status,
+        parties: result.parties,
+        actsAndSections: result.actsAndSections,
+        history: result.history,
+        orders: result.orders,
+        firstInformationReport: result.firstInformationReport,
+        transfer: result.transfer,
+      };
+
+      return { success: true, data: caseData };
+    } catch (error) {
+      console.error('Error looking up case by CNR:', error);
+      return { success: false, message: "An unexpected error occurred." };
+    }
+}

@@ -23,7 +23,7 @@ export default function CaseSearch() {
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <Link href="/cases/new" passHref>
+                <Link href="/my-cases/new" passHref>
                     <SidebarMenuButton tooltip="Add a new case" isActive={pathname === '/cases/new'}>
                         <PlusCircle />
                         <span>Add New Case</span>

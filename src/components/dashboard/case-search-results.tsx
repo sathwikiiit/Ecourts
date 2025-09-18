@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Case } from '@/lib/types';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { addCase } from '@/lib/actions/cases';
+import { addCaseFromSearch } from '@/lib/actions/cases';
 import { useRouter } from 'next/navigation';
 
 type CaseSearchResultsProps = {
@@ -31,13 +31,13 @@ export default function CaseSearchResults({ loading, results, searched }: CaseSe
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleAddCase = (caseItem: Case) => {
+  const handleAddCase = (cnr: string, title: string) => {
     startTransition(async () => {
-        const result = await addCase(caseItem);
+        const result = await addCaseFromSearch(cnr);
         if (result.success) {
             toast({
                 title: "Case Added",
-                description: `Case "${caseItem.title}" has been added to your cases.`,
+                description: `Case with CNR ${cnr} has been added to your cases.`,
             });
             router.push('/my-cases');
         } else {
@@ -82,7 +82,7 @@ export default function CaseSearchResults({ loading, results, searched }: CaseSe
                     variant="ghost" 
                     size="icon" 
                     className="mr-2 shrink-0" 
-                    onClick={() => handleAddCase(caseItem)}
+                    onClick={() => caseItem.cnr && handleAddCase(caseItem.cnr, caseItem.title)}
                     disabled={isPending}
                     >
                     <PlusCircle className="h-4 w-4" />
