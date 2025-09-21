@@ -1,2 +1,9 @@
 compatibility_date = "2025-09-21"
 compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "courts"
+database_id = "f6a3f887-0ee6-487d-a4c9-9ae6cd40f645"
+
+
