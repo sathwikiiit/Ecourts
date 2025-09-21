@@ -5,6 +5,7 @@ import { Briefcase, ArrowLeft, Eye } from 'lucide-react';
 import { getCases } from '@/lib/actions/cases';
 import { SyncButton } from '@/components/dashboard/sync-button';
 
+export const runtime = 'edge';
 export default async function MyCasesPage() {
   const myCases = await getCases();
 
