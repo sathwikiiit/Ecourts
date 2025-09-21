@@ -21,7 +21,7 @@ function SubmitButton() {
     </Button>
   );
 }
-
+export const runtime = 'edge';
 export default function AddNewCasePage() {
   const { toast } = useToast();
   const router = useRouter();

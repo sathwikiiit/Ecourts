@@ -6,7 +6,7 @@ import { ArrowLeft, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
-
+export const runtime = 'edge';
 export default async function CaseDetailsPage({ params }: { params: { cnr: string } }) {
   const caseDetails = await getCaseByCnr(params.cnr);
 
