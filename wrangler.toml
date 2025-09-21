@@ -1,5 +1,4 @@
 name = "ecourts"
-main = "src/index.ts"
 compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2025-07-01"
 pages_build_output_dir = "./vercel/output/static"
