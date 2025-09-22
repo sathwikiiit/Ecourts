@@ -60,6 +60,13 @@ export interface Case {
   orders?: OrderItem[];
   firstInformationReport?: any; // Or a more specific type if known
   transfer?: any[]; // Or a more specific type if known
+  // Properties for search results that may not be on a fully detailed case object
+  petitioner?: string;
+  respondent?: string;
+  date_of_filing?: string;
+  advocate?: string;
+  filing?: { number?: string; year?: string };
+  party_name?: string;
 }
 
 export interface Hearing {

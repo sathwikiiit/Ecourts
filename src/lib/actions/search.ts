@@ -1,6 +1,6 @@
 'use server';
 
-import type { Case } from '@/lib/types';
+import type { Case } from '@/lib/types'; 
 import { unstable_noStore as noStore } from 'next/cache';
 import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
 
@@ -165,18 +165,18 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
           return [];
       }
       
-      const searchResult = await response.json();
+      const searchResult: Case = await response.json();
       console.log('Search by Filing Number Results:', JSON.stringify(searchResult, null, 2));
 
       if (searchResult && (searchResult.cnr || searchResult.case_number)) {
         return [{
             id: searchResult.cnr || `${searchResult.case_number}-0`,
-            case_number: searchResult.case_number || 'N/A',
+            case_number: searchResult.case_number || 'N/A', 
             title: `${searchResult.petitioner} vs ${searchResult.respondent}`,
             description: `Filing Date: ${searchResult.date_of_filing || 'N/A'}`,
             status: 'Pending',
             cnr: searchResult.cnr,
-            advocateName: searchResult.advocate,
+            advocateName: searchResult.advocate, 
             filingNumber: searchResult.filing?.number,
             filingYear: searchResult.filing?.year,
         }];

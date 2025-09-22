@@ -1,8 +1,9 @@
 'use server';
 
 import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
-import type { Case } from '@/lib/types';
-import { db } from '@/lib/db';
+import { getRequestContext } from '@cloudflare/next-on-pages';
+import type { Case } from '@/lib/types'; 
+import { getDb, type Env } from '@/lib/db';
 import { lookupCaseByCnr } from './search';
 
 // Helper to parse case from DB row
@@ -29,9 +30,9 @@ function parseCaseFromRow(row: any): Case {
 export async function getCases(): Promise<Case[]> {
   noStore();
   try {
-    const stmt = db.prepare('SELECT * FROM cases ORDER BY created_at DESC');
-    const rows = stmt.all() as any[];
-    return rows.map(parseCaseFromRow);
+    const db = getDb(getRequestContext().env as Env);
+    const { results } = await db.prepare('SELECT * FROM cases ORDER BY created_at DESC').all();
+    return results ? (results.map(parseCaseFromRow) as Case[]) : [];
   } catch (error) {
     console.error("Failed to get cases:", error);
     return [];
@@ -41,9 +42,9 @@ export async function getCases(): Promise<Case[]> {
 export async function getCaseByCnr(cnr: string): Promise<Case | null> {
     noStore();
     try {
-        const stmt = db.prepare('SELECT * FROM cases WHERE cnr = ?');
-        const row = stmt.get(cnr) as any;
-        return row ? parseCaseFromRow(row) : null;
+        const db = getDb(getRequestContext().env as Env);
+        const row = await db.prepare('SELECT * FROM cases WHERE cnr = ?').bind(cnr).first();
+        return row ? parseCaseFromRow(row as any) : null;
     } catch (error) {
         console.error(`Failed to get case with CNR ${cnr}:`, error);
         return null;
@@ -60,6 +61,7 @@ async function upsertCase(cnr: string): Promise<{ success: boolean, message: str
     const caseData = lookupResult.data;
 
     try {
+        const db = getDb(getRequestContext().env as Env);
         const stmt = db.prepare(`
             INSERT INTO cases (
                 cnr, title, case_number, description, status, 
@@ -82,26 +84,26 @@ async function upsertCase(cnr: string): Promise<{ success: boolean, message: str
                 orders = excluded.orders
         `);
 
-        const info = stmt.run({
-            cnr: caseData.cnr,
-            title: caseData.title,
-            case_number: caseData.case_number,
-            description: caseData.description,
-            status: caseData.status,
-            details: JSON.stringify(caseData.details),
-            status_details: JSON.stringify(caseData.statusDetails),
-            parties: JSON.stringify(caseData.parties),
-            acts_and_sections: JSON.stringify(caseData.actsAndSections),
-            history: JSON.stringify(caseData.history),
-            orders: JSON.stringify(caseData.orders),
-        });
+        const info = await stmt.bind(
+            caseData.cnr,
+            caseData.title,
+            caseData.case_number,
+            caseData.description,
+            caseData.status,
+            JSON.stringify(caseData.details),
+            JSON.stringify(caseData.statusDetails),
+            JSON.stringify(caseData.parties),
+            JSON.stringify(caseData.actsAndSections),
+            JSON.stringify(caseData.history),
+            JSON.stringify(caseData.orders)
+        ).run();
 
         revalidatePath('/my-cases');
         if (caseData.cnr) {
             revalidatePath(`/my-cases/${caseData.cnr}`);
         }
-        
-        const message = info.changes > 0 ? `Case ${cnr} has been successfully added or updated.` : `Case ${cnr} is already up to date.`;
+
+        const message = info.meta.changes > 0 ? `Case ${cnr} has been successfully added or updated.` : `Case ${cnr} is already up to date.`;
         return { success: true, message };
 
     } catch (error) {

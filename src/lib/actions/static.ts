@@ -2,7 +2,6 @@
 
 import type { District, Complex, State } from '@/lib/types';
 import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
-import { districts as staticDistricts, complexes as staticComplexes, states as staticStates } from '@/app/data';
 
 export async function getStates(): Promise<State[]> {
     if (!API_KEY) return [];
@@ -15,7 +14,7 @@ export async function getStates(): Promise<State[]> {
             console.error('Failed to fetch states, falling back to empty array', response.status, await response.text());
             return [];
         }
-        const data = await response.json();
+        const data: { states: State[] } = await response.json();
         return data.states || [];
     } catch (error) {
         console.error('Error fetching states:', error);
@@ -37,7 +36,7 @@ export async function getDistricts(stateId?: string): Promise<District[]> {
             console.error('Failed to fetch districts, falling back to empty array', response.status, await response.text());
             return [];
         }
-        const data = await response.json();
+        const data: { districts: District[] } = await response.json();
         return data.districts || [];
     } catch (error) {
         console.error('Error fetching districts:', error);
@@ -58,7 +57,7 @@ export async function getComplexes(districtId?: string): Promise<Complex[]> {
             console.error('Failed to fetch complexes, falling back to empty array', response.status, await response.text());
             return [];
         }
-        const data = await response.json();
+        const data: { complexes: Complex[] } = await response.json();
         return data.complexes || [];
     } catch (error) {
         console.error('Error fetching complexes:', error);
