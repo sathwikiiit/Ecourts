@@ -1,4 +1,3 @@
-0,0 @@
 -- Cloudflare D1 Schema for CourtSync
 
 -- Drop tables if they exist to ensure a clean slate on recreation.
