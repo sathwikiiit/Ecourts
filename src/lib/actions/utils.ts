@@ -1,3 +1,5 @@
+'use server';
+
 import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const API_BASE_URL = 'https://court-api.kleopatra.io/api/core';
