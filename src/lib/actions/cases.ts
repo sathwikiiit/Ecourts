@@ -6,6 +6,7 @@ import type { Case } from '@/lib/types';
 import { getDb, type Env } from '@/lib/db';
 import { lookupCaseByCnr } from './search';
 
+export const runtime = 'edge';
 // Helper to parse case from DB row
 function parseCaseFromRow(row: any): Case {
     return {

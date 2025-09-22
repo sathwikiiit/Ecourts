@@ -2,7 +2,7 @@
 
 import type { District, Complex, State } from '@/lib/types';
 import { API_BASE_URL, getAuthHeaders} from './utils';
-
+export const runtime = 'edge';
 export async function getStates(): Promise<State[]> {
     if (!getAuthHeaders().Authorization) return [];
     try {

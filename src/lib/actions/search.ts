@@ -1,9 +1,10 @@
-'use server';
+'use client';
 
 import type { Case } from '@/lib/types'; 
 import { unstable_noStore as noStore } from 'next/cache';
 import { API_BASE_URL, getAuthHeaders} from './utils';
 
+export const runtime = 'edge';
 type CaseSearchOptions = {
     name: string;
     year?: string;
