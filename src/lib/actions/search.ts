@@ -2,7 +2,7 @@
 
 import type { Case } from '@/lib/types'; 
 import { unstable_noStore as noStore } from 'next/cache';
-import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
+import { API_BASE_URL, getAuthHeaders} from './utils';
 
 type CaseSearchOptions = {
     name: string;
@@ -15,7 +15,7 @@ type CaseSearchOptions = {
 export async function searchCases(options: CaseSearchOptions): Promise<Case[]> {
   noStore();
   if (!options.name) return [];
-  if (!API_KEY) {
+  if (!getAuthHeaders().Authorization) {
     console.error("API Key is not configured. Please set COURT_API_KEY environment variable.");
     return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
@@ -77,7 +77,7 @@ type AdvocateSearchOptions = {
 export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Promise<Case[]> {
     noStore();
     if (!options.name) return [];
-    if (!API_KEY) {
+    if (!getAuthHeaders().Authorization) {
         console.error("API Key is not configured.");
         return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
     }
@@ -142,7 +142,7 @@ type FilingSearchOptions = {
 export async function searchCasesByFilingNumber(options: FilingSearchOptions): Promise<Case[]> {
   noStore();
   if (!options.filingNumber || !options.filingYear) return [];
-  if (!API_KEY) {
+  if (!getAuthHeaders().Authorization) {
       console.error("API Key is not configured.");
       return [{ id: '1', case_number: 'Error', title: 'API Key Not Configured', description: '', status: 'Pending' }];
   }
@@ -192,7 +192,7 @@ export async function searchCasesByFilingNumber(options: FilingSearchOptions): P
 }
 export async function lookupCaseByCnr(cnr: string): Promise<{ success: boolean, data?: Case, message?: string}> {
     noStore();
-    if (!API_KEY) {
+    if (!getAuthHeaders().Authorization) {
       return { success: false, message: "API Key is not configured." };
     }
   

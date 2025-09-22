@@ -1,10 +1,10 @@
 'use server';
 
 import type { District, Complex, State } from '@/lib/types';
-import { API_BASE_URL, getAuthHeaders, API_KEY } from './utils';
+import { API_BASE_URL, getAuthHeaders} from './utils';
 
 export async function getStates(): Promise<State[]> {
-    if (!API_KEY) return [];
+    if (!getAuthHeaders().Authorization) return [];
     try {
         const response = await fetch(`${API_BASE_URL}/static/district-court/states`, {
             method: 'GET',
@@ -24,7 +24,7 @@ export async function getStates(): Promise<State[]> {
 
 
 export async function getDistricts(stateId?: string): Promise<District[]> {
-    if (!API_KEY || !stateId) return [];
+    if (!getAuthHeaders().Authorization || !stateId) return [];
     try {
         const body: { all?: boolean, stateId?: string } = stateId ? { stateId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/districts`, {
@@ -45,7 +45,7 @@ export async function getDistricts(stateId?: string): Promise<District[]> {
 }
 
 export async function getComplexes(districtId?: string): Promise<Complex[]> {
-    if (!API_KEY || !districtId) return [];
+    if (!getAuthHeaders().Authorization || !districtId) return [];
     try {
         const body: { all?: boolean, districtId?: string } = districtId ? { districtId } : { all: true };
         const response = await fetch(`${API_BASE_URL}/static/district-court/complexes`, {
