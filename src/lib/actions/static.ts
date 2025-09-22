@@ -1,7 +1,8 @@
 'use server';
 
 import type { District, Complex, State } from '@/lib/types';
-import { API_BASE_URL, getAuthHeaders} from './utils';
+import { getAuthHeaders } from './utils';
+import { API_BASE_URL } from '../constants';
 
 export async function getStates(): Promise<State[]> {
     if (!getAuthHeaders().Authorization) return [];
