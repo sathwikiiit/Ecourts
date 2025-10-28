@@ -5,7 +5,7 @@ export async function getCalendarText(): Promise<string> {
     const cases = await getCases();
     const events = cases.flatMap(caseItem => {
         if (caseItem.status !== 'Closed' && caseItem.history?.length) {
-            const start = caseItem.history.at(0)?.nextDate;
+            const start = caseItem.history.at(-1)?.nextDate;
             return start ? [{
                 uid: caseItem.id,
                 start: start.replace(/-/g, ''),
