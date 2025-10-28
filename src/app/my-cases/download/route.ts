@@ -1,5 +1,5 @@
 import { getCalendarText } from "@/lib/actions/calender";
-
+export const runtime = 'edge';
 export async function GET() {
     const icsText = await getCalendarText();
     if (!icsText) {
