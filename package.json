@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "init-db": "wrangler d1 execute courts --file ./schema.sql",
+    "init-remote-db": "wrangler d1 execute courts --file ./schema.sql"
   },
   "dependencies": {
     "@cloudflare/next-on-pages": "^1.13.12",

@@ -28,35 +28,36 @@ CREATE TABLE IF NOT EXISTS cases (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create states Table
+-- States
 CREATE TABLE IF NOT EXISTS states (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    state_id TEXT NOT NULL
+    id TEXT PRIMARY KEY,   -- use API-provided ID as PK
+    name TEXT NOT NULL
 );
 
--- Create districts Table
+-- Districts
 CREATE TABLE IF NOT EXISTS districts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY, -- use API ID as PK
     name TEXT NOT NULL,
-    state_id TEXT NOT NULL,
-    district_id TEXT NOT NULL
+    stateId TEXT NOT NULL,
+    FOREIGN KEY (stateId) REFERENCES states(id)
 );
 
--- Create complexes Table
+-- Complexes
 CREATE TABLE IF NOT EXISTS complexes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,  -- use API ID as PK
     name TEXT NOT NULL,
-    district_id TEXT NOT NULL,
-    complex_id TEXT NOT NULL
+    districtId TEXT NOT NULL,
+    FOREIGN KEY (districtId) REFERENCES districts(id)
 );
 
--- Create courts Table
+-- Courts
 CREATE TABLE IF NOT EXISTS courts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    court_id TEXT PRIMARY KEY,    -- use API ID as PK
     name TEXT NOT NULL,
-    state_id TEXT NOT NULL,
-    district_id TEXT NOT NULL,
-    complex_id TEXT NOT NULL,
-    court_id TEXT NOT NULL
+    stateId TEXT NOT NULL,
+    districtId TEXT NOT NULL,
+    complexId TEXT NOT NULL,
+    FOREIGN KEY (stateId) REFERENCES states(id),
+    FOREIGN KEY (districtId) REFERENCES districts(id),
+    FOREIGN KEY (complexId) REFERENCES complexes(id)
 );

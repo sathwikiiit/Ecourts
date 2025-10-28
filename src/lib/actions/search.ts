@@ -85,6 +85,8 @@ export async function searchCasesByAdvocate(options: AdvocateSearchOptions): Pro
         const body: any = {
             name: options.name,
             stage: options.stage || 'PENDING',
+            districtId: options.districtId || undefined,
+            complexId: options.complexId || undefined,
         };
 
         if (options.districtId) body.districtId = options.districtId;

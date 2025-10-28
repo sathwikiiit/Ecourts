@@ -3,7 +3,7 @@
 import { useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
-import { syncCase } from '@/lib/actions/cases';
+import { syncCase as syncCaseOriginal } from '@/lib/actions/cases';
 import { useToast } from '@/hooks/use-toast';
 import { RotateCw } from 'lucide-react';
 
@@ -20,7 +20,8 @@ function SyncSubmitButton() {
 export function SyncButton({ cnr }: { cnr: string }) {
   const { toast } = useToast();
   const initialState = { success: false, message: '' };
-  const [state, dispatch] = useActionState(syncCase, initialState);
+
+  const [state, dispatch] = useActionState(syncCaseOriginal, initialState);
 
   useEffect(() => {
     // We only want to show a toast if a message is returned.

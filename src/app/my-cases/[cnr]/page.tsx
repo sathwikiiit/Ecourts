@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
 export const runtime = 'edge';
-export default async function CaseDetailsPage({ params }: { params: { cnr: string } }) {
-  const caseDetails = await getCaseByCnr(params.cnr);
+export default async function CaseDetailsPage({ params: { cnr } }: { params: { cnr: string } }) {
+  const caseDetails = await getCaseByCnr(cnr);
 
   if (!caseDetails) {
     notFound();

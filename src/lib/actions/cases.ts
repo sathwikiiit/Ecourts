@@ -121,7 +121,8 @@ export async function addOrUpdateCase(prevState: any, formData: FormData): Promi
     return upsertCase(cnr);
 }
 
-export async function syncCase(cnr: string): Promise<{ success: boolean, message: string }> {
+export async function syncCase(prevState: any, formData: FormData): Promise<{ success: boolean, message: string }> {
+    const cnr = formData.get('cnr') as string;
     if (!cnr) {
         return { success: false, message: 'CNR cannot be empty.' };
     }
@@ -139,4 +140,27 @@ export async function addCaseFromSearch(cnr: string): Promise<{ success: boolean
     }
 
     return upsertCase(cnr);
+}
+
+export async function removeCase(prevState: any, formData: FormData): Promise<{ success: boolean, message: string }> {
+    const cnr = formData.get('cnr') as string;
+    if (!cnr) {
+        return { success: false, message: 'CNR cannot be empty.' };
+    }
+
+    try {
+        const db = getDb(getRequestContext().env as Env);
+        const info = await db.prepare('DELETE FROM cases WHERE cnr = ?').bind(cnr).run();
+
+        if (info.meta.changes > 0) {
+            revalidatePath('/my-cases');
+            revalidatePath(`/my-cases/${cnr}`);
+            return { success: true, message: `Case ${cnr} has been removed.` };
+        } else {
+            return { success: false, message: `Case ${cnr} not found.` };
+        }
+    } catch (error) {
+        console.error(`Failed to remove case ${cnr}:`, error);
+        return { success: false, message: 'Failed to remove case from the database.' };
+    }
 }
