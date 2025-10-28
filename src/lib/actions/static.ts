@@ -33,6 +33,7 @@ export async function getStates(): Promise<State[]> {
     try {
         const db = getDb(getRequestContext().env as Env);
         const dbStates = await db.prepare('SELECT * FROM states').all<State>();
+        console.log(dbStates);
         if (dbStates.results.length > 0) return dbStates.results;
 
         const data = await fetchFromAPI<{ states: State[] }>('/static/district-court/states', 'GET');
